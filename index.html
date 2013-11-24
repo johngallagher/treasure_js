@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>SearchPoc</title>
+  <title>Treasure JS Proof of Concept</title>
   <link href="css/application.css?body=1" media="all" rel="stylesheet" type="text/css">
   <link href="css/chosen.css?body=1" media="all" rel="stylesheet" type="text/css">
   <meta content="authenticity_token" name="csrf-param">
@@ -9,7 +9,7 @@
 </head>
 <body>
 
-  <h1>Search POC</h1>
+  <h1>Treasure JS Proof of Concept</h1>
 
   <select id="query" multiple="multiple" name="query[]"></select>
 
@@ -172,7 +172,7 @@ $( document ).ready(function() {
         return paramTemplate.expand({
           key: condition.get('parameter'), 
           namespace: "school", 
-          value: condition.get('text')
+          value: condition.get('value')
         });
       }).join(" ");
       encodedFormat   = '&output=json&stylesheet=xml-to-html.xsl&force-accept=text%2Fplain';
@@ -215,13 +215,13 @@ $( document ).ready(function() {
   app.resultsView = new ResultsView();
 
   app.Conditions.add([
-    {parameter: "phaseOfEducation", group: "Phase", text: "Primary"},
-    {parameter: "phaseOfEducation", group: "Phase", text: "Secondary"},
-    {parameter: "districtAdministrative", group: "Location", text: "Southwark"},
-    {parameter: "districtAdministrative", group: "Location", text: "Wandsworth"},
-    {parameter: "districtAdministrative", group: "Location", text: "Bromley"},
-    {parameter: "typeOfEstablishment", group: "Type", text: "Other Independent School"},
-    {parameter: "typeOfEstablishment", group: "Type", text: "Foundation School"}
+    {parameter: "phaseOfEducation", group: "Phase", text: "Primary", value: "Primary"},
+    {parameter: "phaseOfEducation", group: "Phase", text: "Secondary", value: "Secondary"},
+    {parameter: "districtAdministrative", group: "Location", text: "Southwark", value: "Southwark"},
+    {parameter: "districtAdministrative", group: "Location", text: "Wandsworth", value: "Wandsworth"},
+    {parameter: "districtAdministrative", group: "Location", text: "Bromley", value: "Bromley"},
+    {parameter: "typeOfEstablishment", group: "Type", text: "Independent", value: "Other Independent School"},
+    {parameter: "typeOfEstablishment", group: "Type", text: "Foundation", value: "Foundation School"}
     ]);
 
   app.conditionsGroupView.render();
