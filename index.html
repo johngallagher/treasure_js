@@ -95,6 +95,12 @@ $( document ).ready(function() {
         return condition.get('selectable');
       });
     },
+    selected: function() {
+      return this.where({selected: true});
+    },
+    selectedCount: function() {
+      return selected().length;
+    },
     allowGroup: function(group) {
       this.forEach(function(condition) {
         if(condition.get('group') == group || condition.get('selected')) {
@@ -112,13 +118,15 @@ $( document ).ready(function() {
       this.allowGroup(this.nextGroupAllowed(selectedGroup));
     },
     nextGroupAllowed: function(selectedGroup) {
-      if (selectedGroup == "Phase") {
-        return "Location";
-      } else if (selectedGroup == "Location") {
-        return "Type";
-      } else {
-        return "";
-      }
+        if (selectedGroup == "Phase") {
+          return "Location";
+        } else if (selectedGroup == "Location") {
+          return "Type";
+        } else if (selectedGroup == "Type") {
+          return "";
+        } else {
+          return "";
+        }
     },
     deselect: function (id) {
       deselectedCondition = app.Conditions.findWhere({id: id});
