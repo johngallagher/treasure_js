@@ -1,2 +1,2 @@
-treasure_js
+Treasure.js
 ===========
