@@ -56,6 +56,7 @@ $( document ).ready(function() {
 
   // Config
   var paramTemplate = urltemplate.parse(' ?___{key} rdfs:label "{value}" . ?item {namespace}:{key} ?___{key} .');
+  var tupleTemplate = urltemplate.parse(' {object_1} {relationship} {object_2} . ');
   var prefixes = 'PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX school: <http://education.data.gov.uk/def/school/>';
   var select = ' SELECT ?name ?item';
   var where  = ' WHERE { ?item rdf:type school:School . ?item rdfs:label ?name .';
@@ -155,6 +156,7 @@ $( document ).ready(function() {
       this.el = this.template({groups: groups});
       $('#query').children().remove();
       $('#query').append(this.el);
+      $('#query').trigger('chosen:updated');
       return this;
     },
   });
@@ -168,6 +170,52 @@ $( document ).ready(function() {
       $('#results').html(this.template({conditions: this.conditions}));
     },
   });
+
+  var DistrictAdministrativeList = Backbone.Collection.extend({
+    url: function() {
+      encodedPrefixes = encodeURIComponent(prefixes)
+      encodedSelect   = encodeURIComponent(' SELECT DISTINCT ?label ')
+      encodedWhere    = encodeURIComponent(' WHERE { ');
+      encodedNode     = tupleTemplate.expand({
+        object_1: '?school', 
+        relationship: '<http://education.data.gov.uk/def/school/districtAdministrative>', 
+        object_2: '?node'
+      });
+      encodedLabel    = tupleTemplate.expand({
+        object_1: '?node', 
+        relationship: 'rdfs:label', 
+        object_2: '?label'
+      });
+      encodedFormat   = '&output=json&stylesheet=xml-to-html.xsl&force-accept=text%2Fplain';
+
+      // return base_url + encodedPrefixes + encodedSelect + encodedWhere + encodedNode + encodedLabel + encodedFormat;
+      return "http://education.data.gov.uk/sparql/education/query?query=PREFIX+rdfs%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23%3E%0D%0A%0D%0ASELECT+DISTINCT+%3Flabel+WHERE+%7B%0D%0A++%3Fschool+%3Chttp%3A%2F%2Feducation.data.gov.uk%2Fdef%2Fschool%2FdistrictAdministrative%3E+%3Fnode+.%0D%0A++%3Fnode+rdfs%3Alabel+%3Flabel+.%0D%0A%7D%0D%0A&output=json&stylesheet=xml-to-html.xsl&force-accept=text%2Fplain";
+    },
+    parse: function (raw_response) {
+      data = raw_response.results.bindings.map(function(result) { 
+        return {parameter: "districtAdministrative", group: "Location", text:result.label.value, value:result.label.value}; 
+      });
+      return data;
+    },
+    update: function() {
+      this.fetch({ 
+        dataType: "jsonp",
+        success: (function(model, response, options) {
+          console.log("Success");
+          districtAdministrativePossibles = model.models.map(function(thisModel) { return thisModel.attributes });
+          app.Conditions.add(districtAdministrativePossibles);
+          app.conditionsGroupView.render();
+        }),
+        error: (function(model, response, options) {
+          console.log("Error");
+        }),
+        complete: (function(data) {
+          console.log("Complete");
+        })
+      });
+    }
+  });
+  app.districtAdministratives = new DistrictAdministrativeList();
 
   var SchoolList = Backbone.Collection.extend({
     url: function() {
@@ -198,7 +246,7 @@ $( document ).ready(function() {
       this.fetch({ 
         dataType: "jsonp",
         success: (function(data) {
-          app.resultsView.render();
+          app.schoolsView.render();
         }),
         error: (function(data) {
           console.log("Error");
@@ -211,7 +259,7 @@ $( document ).ready(function() {
   });
   app.schools = new SchoolList();
 
-  ResultsView = Backbone.View.extend({
+  SchoolsView = Backbone.View.extend({
     template: _.template($('#results-template').html()),
     render: function() {
       $('#results').html(this.template({schools: app.schools.toArray()}));
@@ -220,19 +268,17 @@ $( document ).ready(function() {
 
   app.conditionsGroupView = new app.ConditionGroupView(); // Start the conditions view
   app.selectedConditionsView = new app.SelectedConditionsGroupView();
-  app.resultsView = new ResultsView();
+  app.schoolsView = new SchoolsView();
 
   app.Conditions.add([
     {parameter: "phaseOfEducation", group: "Phase", text: "Primary", value: "Primary"},
     {parameter: "phaseOfEducation", group: "Phase", text: "Secondary", value: "Secondary"},
-    {parameter: "districtAdministrative", group: "Location", text: "Southwark", value: "Southwark"},
-    {parameter: "districtAdministrative", group: "Location", text: "Wandsworth", value: "Wandsworth"},
-    {parameter: "districtAdministrative", group: "Location", text: "Bromley", value: "Bromley"},
     {parameter: "typeOfEstablishment", group: "Type", text: "Independent", value: "Other Independent School"},
     {parameter: "typeOfEstablishment", group: "Type", text: "Foundation", value: "Foundation School"}
     ]);
 
-  app.conditionsGroupView.render();
+  app.districtAdministratives.update();
+  // app.conditionsGroupView.render();
 
   $('#query').chosen();
   app.schools.update();
@@ -245,7 +291,6 @@ $( document ).ready(function() {
       app.Conditions.deselect(params.deselected);
     };
     app.conditionsGroupView.render();
-    $('#query').trigger('chosen:updated');
     
     app.schools.update();
   });
