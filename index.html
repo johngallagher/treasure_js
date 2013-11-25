@@ -239,7 +239,7 @@ $( document ).ready(function() {
       };
       return Backbone.sync('update', this, options);
     },
-    save: function() {
+    saveAll: function() {
       Backbone.sync('save', this, {
         success: function(){
           console.log('users saved!');
@@ -253,14 +253,13 @@ $( document ).ready(function() {
   app.ConditionGroupView = Backbone.View.extend({
     template: _.template($("#condition-group-template").html()),
 
-    initialize: function () {
-      this.listenTo(app.Conditions, 'add', this.add);
-    },
+     initialize: function () {
+       this.listenTo(app.Conditions, 'add', this.add);
+     },
 
-    add: function(condition) {
-      condition.save();
-    },
-
+     add: function(condition) {
+       condition.save();
+     },
     render: function() {
       var selectable = app.Conditions.selectable();
       var groups = _.groupBy(selectable, function(object) { return object.get('group') });
@@ -341,7 +340,6 @@ $( document ).ready(function() {
     ]);
   app.Conditions.add(districtAdministratives);
   app.Conditions.add(typeOfEstablishments);
-  // app.Conditions.updateAll();
 
   app.conditionsGroupView.render();
 
