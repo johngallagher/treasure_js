@@ -164,13 +164,16 @@ $( document ).ready(function() {
       return {
         group: null,
         selected: false,
-        selectable: true
+        selectable: true,
+        orderSelected: 0
       };
     },
     select: function() {
+      this.set('orderSelected', app.Conditions.selectedCount() + 1);
       this.save({selected: true});
     },
     deselect: function() {
+      this.set('orderSelected', 0);
       this.save({selected: false});
     },
     selectedAttribute: function() {
@@ -185,7 +188,7 @@ $( document ).ready(function() {
   var ConditionList = Backbone.Collection.extend({
     model: app.Condition,
     localStorage: new Backbone.LocalStorage("conditions-backbone"),
-    comparator: 'text',
+    comparator:  "text",
     selectable: function() {
       if (this.selected().length == 0) {
         return this.filter(function (model) { 
@@ -199,13 +202,17 @@ $( document ).ready(function() {
         return this.filter(function (model) { 
           return model.get('group') == 'Type' || model.get('selected') == true;
         });
+      } else if (this.selected().length == 3) {
+        return this.filter(function (model) { 
+          return model.get('selected') == true;
+        });
       };
     },
     selected: function() {
-      return this.where({selected: true});
+      return _.sortBy(this.where({selected: true}), function(condition) { return condition.get("orderSelected") });
     },
     selectedCount: function() {
-      return selected().length;
+      return this.selected().length;
     },
     allowGroup: function(group) {
       this.forEach(function(condition) {
@@ -220,25 +227,10 @@ $( document ).ready(function() {
     select: function(id) {
       selectedCondition = app.Conditions.findWhere({id: id});
       selectedCondition.select();
-      // selectedGroup = selectedCondition.get('group');
-      // this.allowGroup(this.nextGroupAllowed(selectedGroup));
-    },
-    nextGroupAllowed: function(selectedGroup) {
-        if (selectedGroup == "Phase") {
-          return "Location";
-        } else if (selectedGroup == "Location") {
-          return "Type";
-        } else if (selectedGroup == "Type") {
-          return "";
-        } else {
-          return "";
-        }
     },
     deselect: function (id) {
       deselectedCondition = app.Conditions.findWhere({id: id});
       deselectedCondition.deselect();
-      deselectedGroup = deselectedCondition.get('group');
-      this.allowGroup(deselectedGroup);
     },
     updateAll: function() {
       var collection = this;
@@ -271,7 +263,7 @@ $( document ).ready(function() {
        condition.save();
      },
     render: function() {
-      var selectable = app.Conditions.selectable();
+      var selectable = _.sortBy(app.Conditions.selectable(), function(condition) { return condition.get('orderSelected') });
       var groups = _.groupBy(selectable, function(object) { return object.get('group') });
       this.el = this.template({groups: groups});
       $('#query').children().remove();
