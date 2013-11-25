@@ -588,8 +588,8 @@ $( document ).ready(function() {
       })
     }
   });
-
   app.Conditions = new ConditionList();
+  app.Conditions.fetch();
 
   app.ConditionGroupView = Backbone.View.extend({
     template: _.template($("#condition-group-template").html()),
@@ -675,12 +675,14 @@ $( document ).ready(function() {
   app.selectedConditionsView = new app.SelectedConditionsGroupView();
   app.schoolsView = new SchoolsView();
 
-  app.Conditions.add([
-    {parameter: "phaseOfEducation", group: "Phase", text: "Primary", value: "Primary"},
-    {parameter: "phaseOfEducation", group: "Phase", text: "Secondary", value: "Secondary"}
-    ]);
-  app.Conditions.add(districtAdministratives);
-  app.Conditions.add(typeOfEstablishments);
+  if (app.Conditions.length == 0) {
+    app.Conditions.add([
+      {parameter: "phaseOfEducation", group: "Phase", text: "Primary", value: "Primary"},
+      {parameter: "phaseOfEducation", group: "Phase", text: "Secondary", value: "Secondary"}
+      ]);
+    app.Conditions.add(districtAdministratives);
+    app.Conditions.add(typeOfEstablishments);
+  };
 
   app.conditionsGroupView.render();
 
