@@ -187,9 +187,19 @@ $( document ).ready(function() {
     localStorage: new Backbone.LocalStorage("conditions-backbone"),
     comparator: 'text',
     selectable: function() {
-      return this.filter(function(condition) {
-        return condition.get('selectable');
-      });
+      if (this.selected().length == 0) {
+        return this.filter(function (model) { 
+          return model.get('group') == 'Phase' || model.get('selected') == true;
+        });
+      } else if (this.selected().length == 1) {
+        return this.filter(function (model) { 
+          return model.get('group') == 'Location' || model.get('selected') == true;
+        });
+      } else if (this.selected().length == 2) {
+        return this.filter(function (model) { 
+          return model.get('group') == 'Type' || model.get('selected') == true;
+        });
+      };
     },
     selected: function() {
       return this.where({selected: true});
@@ -210,8 +220,8 @@ $( document ).ready(function() {
     select: function(id) {
       selectedCondition = app.Conditions.findWhere({id: id});
       selectedCondition.select();
-      selectedGroup = selectedCondition.get('group');
-      this.allowGroup(this.nextGroupAllowed(selectedGroup));
+      // selectedGroup = selectedCondition.get('group');
+      // this.allowGroup(this.nextGroupAllowed(selectedGroup));
     },
     nextGroupAllowed: function(selectedGroup) {
         if (selectedGroup == "Phase") {
