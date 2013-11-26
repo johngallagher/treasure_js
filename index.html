@@ -495,6 +495,7 @@ $( document ).ready(function() {
   var limit  = ' } OFFSET 0 LIMIT 30';
   var base_url = 'http://education.data.gov.uk/sparql/education/query?query=';
 
+  $('#query').chosen();
 
   var app = app || {};
 
@@ -623,6 +624,7 @@ $( document ).ready(function() {
   });
 
   var SchoolList = Backbone.Collection.extend({
+    comparator: "name",
     url: function() {
       selectedConditions = app.Conditions.where({selected: true});
       encodedPrefixes = encodeURIComponent(prefixes)
@@ -686,7 +688,6 @@ $( document ).ready(function() {
 
   app.conditionsGroupView.render();
 
-  $('#query').chosen();
   app.schools.update();
 
   $('#query').on('change', function(evt, params) {
