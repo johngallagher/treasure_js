@@ -487,12 +487,21 @@ $( document ).ready(function() {
 
 
   // Config
-  var paramTemplate = urltemplate.parse(' ?___{key} rdfs:label "{value}" . ?item {namespace}:{key} ?___{key} .');
+  var paramTemplate = urltemplate.parse(' ?{key}__? rdfs:label "{value}" . ');
   var tupleTemplate = urltemplate.parse(' {object_1} {relationship} {object_2} . ');
+  var predicateTemplate = urltemplate.parse(' ?___{variable} {relationship} "{value}" . ');
   var prefixes = 'PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX school: <http://education.data.gov.uk/def/school/>';
-  var select = ' SELECT ?name ?item ?type';
-  var where  = ' WHERE { ?item rdf:type school:School . ?item rdfs:label ?name . ?item school:typeOfEstablishment ?typeCode . ?typeCode rdfs:label ?type .';
-  var limit  = ' } ';
+  var select = ' SELECT ?name ?item ?typeOfEstablishment ?districtAdministrative ?phaseOfEducation';
+  var where  = ' WHERE { ' +
+    '?item rdf:type school:School . ' +
+    '?item rdfs:label ?name . ' +
+    '?item school:typeOfEstablishment ?___typeOfEstablishment . ' +
+    '?___typeOfEstablishment rdfs:label ?typeOfEstablishment . ' +
+    '?item school:phaseOfEducation ?___phaseOfEducation . ' +
+    '?___phaseOfEducation rdfs:label ?phaseOfEducation . ' +
+    '?item school:districtAdministrative ?___districtAdministrative . ' +
+    '?___districtAdministrative rdfs:label ?districtAdministrative . ';
+  var limit  = ' } OFFSET 0 LIMIT 200';
   var base_url = 'http://education.data.gov.uk/sparql/education/query?query=';
 
   $('#query').chosen();
@@ -546,23 +555,47 @@ $( document ).ready(function() {
         return _.contains(allowedGroups, condition.get('group'))
       });
       
-      if (conditionsSelected.length > 0) {
+      if (conditionsSelected.length > 0 && resultsLessThanOnePage) {
         // Calculate types of establishments limited by results
         typeConditions = _.select(conditionsAllowedByGroup, function(condition) {
           return condition.get('group') == "Type";
         });
 
         typesWithinResults = _.uniq(app.schools.map(function(school) {
-          return school.get("type");
+          return school.get("typeOfEstablishment");
         }));
         typeConditionsLimitedByResults = _.filter(typeConditions, function (condition) { 
           return _.contains(typesWithinResults, condition.get('value'));
         });
 
-        nontypeConditions = _.difference(conditionsAllowedByGroup, typeConditions);
-        return _.union(conditionsSelected, nontypeConditions, typeConditionsLimitedByResults);
+        // Calculate types of establishments limited by results
+        districtConditions = _.select(conditionsAllowedByGroup, function(condition) {
+          return condition.get('group') == "Location";
+        });
+
+        districtsWithinResults = _.uniq(app.schools.map(function(school) {
+          return school.get("districtAdministrative");
+        }));
+        districtConditionsLimitedByResults = _.filter(districtConditions, function (condition) { 
+          return _.contains(districtsWithinResults, condition.get('value'));
+        });
+
+        // Calculate types of establishments limited by results
+        phaseConditions = _.select(conditionsAllowedByGroup, function(condition) {
+          return condition.get('group') == "Phase";
+        });
+
+        phasesWithinResults = _.uniq(app.schools.map(function(school) {
+          return school.get("phaseOfEducation");
+        }));
+        phaseConditionsLimitedByResults = _.filter(phaseConditions, function (condition) { 
+          return _.contains(phasesWithinResults, condition.get('value'));
+        });
+
+        // nontypeConditions = _.difference(conditionsAllowedByGroup, typeConditions);
+        return _.union(conditionsSelected, phaseConditionsLimitedByResults, districtConditionsLimitedByResults, typeConditionsLimitedByResults);
       } else {
-        return conditionsAllowedByGroup;
+        return _.union(conditionsSelected, conditionsAllowedByGroup);
       }
 
     },
@@ -650,9 +683,9 @@ var SchoolList = Backbone.Collection.extend({
     encodedLimit    = encodeURIComponent(limit);
     selectedConditions = app.Conditions.where({selected: true});
     encodedSearchParameters = selectedConditions.map(function(condition) { 
-      return paramTemplate.expand({
-        key: condition.get('parameter'), 
-        namespace: "school", 
+      return predicateTemplate.expand({
+        variable: condition.get('parameter'), 
+        relationship: "rdfs:label", 
         value: condition.get('value')
       });
     }).join(" ");
@@ -663,7 +696,13 @@ var SchoolList = Backbone.Collection.extend({
   parse: function (raw_response) {
     console.log("just parsed");
     data = raw_response.results.bindings.map(function(result) { 
-      return {"item":result.item.value, "name":result.name.value, "type":result.type.value}; 
+      return {
+        "item":result.item.value, 
+        "name":result.name.value, 
+        "typeOfEstablishment":result.typeOfEstablishment.value,
+        "phaseOfEducation":result.phaseOfEducation.value,
+        "districtAdministrative":result.districtAdministrative.value
+      }; 
     });
     return data;
   },
@@ -705,7 +744,12 @@ SchoolsView = Backbone.View.extend({
   if (app.Conditions.length == 0) {
     app.Conditions.add([
       {parameter: "phaseOfEducation", group: "Phase", text: "Primary", value: "Primary"},
-      {parameter: "phaseOfEducation", group: "Phase", text: "Secondary", value: "Secondary"}
+      {parameter: "phaseOfEducation", group: "Phase", text: "Secondary", value: "Secondary"},
+      {parameter: "phaseOfEducation", group: "Phase", text: "Nursery", value: "Nursery"},
+      {parameter: "phaseOfEducation", group: "Phase", text: "Middle Deemed Secondary", value: "Middle Deemed Secondary"},
+      {parameter: "phaseOfEducation", group: "Phase", text: "Middle Deemed Primary", value: "Middle Deemed Primary"},
+      {parameter: "phaseOfEducation", group: "Phase", text: "16 Plus", value: "16 Plus"},
+      {parameter: "phaseOfEducation", group: "Phase", text: "Not applicable", value: "Not applicable"}
       ]);
     app.Conditions.add(districtAdministratives);
     app.Conditions.add(typeOfEstablishments);
