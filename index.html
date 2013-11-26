@@ -529,33 +529,18 @@ $( document ).ready(function() {
     model: app.Condition,
     localStorage: new Backbone.LocalStorage("conditions-backbone"),
     comparator:  "text",
+    allowedGroups: function() {
+      possibleGroups = ["Phase", "Location", "Type"];
+      selectedGroups = _.map(this.selected(), function (school) {
+        return school.get('group');
+      });
+      return _.difference(possibleGroups, selectedGroups);
+    },
     selectable: function() {
-      if (this.selected().length == 0) {
-        return this.filter(function (model) { 
-          return model.get('group') == 'Phase' || model.get('selected') == true;
-        });
-      } else if (this.selected().length == 1) {
-        return this.filter(function (model) { 
-          return model.get('group') == 'Location' || model.get('selected') == true;
-        });
-      } else if (this.selected().length == 2) {
-        allTypes = app.schools.map(function(school) { return school.get('type') });
-        selectableTypes = _.uniq(allTypes);
-        return this.filter(function (model) { 
-          if (model.get('selected')) {
-            return true;
-          };
-          if (model.get('group') !== 'Type') {
-            return false;
-          };
-          schoolType = model.get('value');
-          return _.contains(selectableTypes, schoolType);
-        });
-      } else if (this.selected().length == 3) {
-        return this.filter(function (model) { 
-          return model.get('selected') == true;
-        });
-      };
+      allowedGroups = this.allowedGroups();
+      return this.filter(function (school) { 
+        return school.get('selected') || _.contains(allowedGroups, school.get('group'))
+      });
     },
     selected: function() {
       return _.sortBy(this.where({selected: true}), function(condition) { return condition.get("orderSelected") });
