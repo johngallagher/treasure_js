@@ -490,9 +490,9 @@ $( document ).ready(function() {
   var paramTemplate = urltemplate.parse(' ?___{key} rdfs:label "{value}" . ?item {namespace}:{key} ?___{key} .');
   var tupleTemplate = urltemplate.parse(' {object_1} {relationship} {object_2} . ');
   var prefixes = 'PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX school: <http://education.data.gov.uk/def/school/>';
-  var select = ' SELECT ?name ?item';
-  var where  = ' WHERE { ?item rdf:type school:School . ?item rdfs:label ?name .';
-  var limit  = ' } OFFSET 0 LIMIT 30';
+  var select = ' SELECT ?name ?item ?type';
+  var where  = ' WHERE { ?item rdf:type school:School . ?item rdfs:label ?name . ?item school:typeOfEstablishment ?typeCode . ?typeCode rdfs:label ?type .';
+  var limit  = ' } OFFSET 0 LIMIT 100';
   var base_url = 'http://education.data.gov.uk/sparql/education/query?query=';
 
   $('#query').chosen();
@@ -539,8 +539,17 @@ $( document ).ready(function() {
           return model.get('group') == 'Location' || model.get('selected') == true;
         });
       } else if (this.selected().length == 2) {
+        allTypes = app.schools.map(function(school) { return school.get('type') });
+        selectableTypes = _.uniq(allTypes);
         return this.filter(function (model) { 
-          return model.get('group') == 'Type' || model.get('selected') == true;
+          if (model.get('selected')) {
+            return true;
+          };
+          if (model.get('group') !== 'Type') {
+            return false;
+          };
+          schoolType = model.get('value');
+          return _.contains(selectableTypes, schoolType);
         });
       } else if (this.selected().length == 3) {
         return this.filter(function (model) { 
@@ -626,11 +635,11 @@ $( document ).ready(function() {
   var SchoolList = Backbone.Collection.extend({
     comparator: "name",
     url: function() {
-      selectedConditions = app.Conditions.where({selected: true});
       encodedPrefixes = encodeURIComponent(prefixes)
       encodedSelect   = encodeURIComponent(select)
       encodedWhere    = encodeURIComponent(where);
       encodedLimit    = encodeURIComponent(limit);
+      selectedConditions = app.Conditions.where({selected: true});
       encodedSearchParameters = selectedConditions.map(function(condition) { 
         return paramTemplate.expand({
           key: condition.get('parameter'), 
@@ -645,7 +654,7 @@ $( document ).ready(function() {
     parse: function (raw_response) {
       console.log("just parsed");
       data = raw_response.results.bindings.map(function(result) { 
-        return {"item":result.item.value, "name":result.name.value}; 
+        return {"item":result.item.value, "name":result.name.value, "type":result.type.value}; 
       });
       return data;
     },
@@ -654,6 +663,7 @@ $( document ).ready(function() {
         dataType: "jsonp",
         success: (function(data) {
           app.schoolsView.render();
+          app.conditionsGroupView.render();
         }),
         error: (function(data) {
           console.log("Error");
@@ -686,8 +696,6 @@ $( document ).ready(function() {
     app.Conditions.add(typeOfEstablishments);
   };
 
-  app.conditionsGroupView.render();
-
   app.schools.update();
 
   $('#query').on('change', function(evt, params) {
@@ -697,9 +705,8 @@ $( document ).ready(function() {
     } else {
       app.Conditions.deselect(params.deselected);
     };
-    app.conditionsGroupView.render();
-    
     app.schools.update();
+    
   });
 
 });
