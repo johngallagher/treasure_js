@@ -492,7 +492,7 @@ $( document ).ready(function() {
   var prefixes = 'PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX school: <http://education.data.gov.uk/def/school/>';
   var select = ' SELECT ?name ?item ?type';
   var where  = ' WHERE { ?item rdf:type school:School . ?item rdfs:label ?name . ?item school:typeOfEstablishment ?typeCode . ?typeCode rdfs:label ?type .';
-  var limit  = ' } OFFSET 0 LIMIT 200';
+  var limit  = ' } ';
   var base_url = 'http://education.data.gov.uk/sparql/education/query?query=';
 
   $('#query').chosen();
@@ -546,7 +546,7 @@ $( document ).ready(function() {
         return _.contains(allowedGroups, condition.get('group'))
       });
       
-      if (resultsLessThanOnePage) {
+      if (conditionsSelected.length > 0) {
         // Calculate types of establishments limited by results
         typeConditions = _.select(conditionsAllowedByGroup, function(condition) {
           return condition.get('group') == "Type";
@@ -560,9 +560,9 @@ $( document ).ready(function() {
         });
 
         nontypeConditions = _.difference(conditionsAllowedByGroup, typeConditions);
-        return _.union(conditionsSelected, nontypeConditions, typeConditionsLimitedByResults)
+        return _.union(conditionsSelected, nontypeConditions, typeConditionsLimitedByResults);
       } else {
-        return _.union(conditionsSelected, conditionsAllowedByGroup);
+        return conditionsAllowedByGroup;
       }
 
     },
@@ -668,19 +668,25 @@ var SchoolList = Backbone.Collection.extend({
     return data;
   },
   update: function() {
-    this.fetch({ 
-      dataType: "jsonp",
-      success: (function(data) {
-        app.schoolsView.render();
-        app.conditionsGroupView.render();
-      }),
-      error: (function(data) {
-        console.log("Error");
-      }),
-      complete: (function(data) {
-        console.log("Complete");
-      })
-    });
+    if (app.Conditions.selected().length == 0) {
+      app.schools.reset();
+      app.schoolsView.render();
+      app.conditionsGroupView.render();
+    } else {
+      this.fetch({ 
+        dataType: "jsonp",
+        success: (function(data) {
+          app.schoolsView.render();
+          app.conditionsGroupView.render();
+        }),
+        error: (function(data) {
+          console.log("Error");
+        }),
+        complete: (function(data) {
+          console.log("Complete");
+        })
+      });
+    }
   }
 });
 app.schools = new SchoolList();
