@@ -492,7 +492,7 @@ $( document ).ready(function() {
   var prefixes = 'PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX school: <http://education.data.gov.uk/def/school/>';
   var select = ' SELECT ?name ?item ?type';
   var where  = ' WHERE { ?item rdf:type school:School . ?item rdfs:label ?name . ?item school:typeOfEstablishment ?typeCode . ?typeCode rdfs:label ?type .';
-  var limit  = ' } OFFSET 0 LIMIT 100';
+  var limit  = ' } OFFSET 0 LIMIT 200';
   var base_url = 'http://education.data.gov.uk/sparql/education/query?query=';
 
   $('#query').chosen();
@@ -539,27 +539,30 @@ $( document ).ready(function() {
     selectable: function() {
 
       allowedGroups = this.allowedGroups();
-      resultsLessThanOnePage = app.schools.length < 100;
-      schoolTypesCanBeSelected = _.contains(allowedGroups, "Type")
-      if (schoolTypesCanBeSelected) {
-        typesWithResults = _.uniq(app.schools.map(function(school) {
+      resultsLessThanOnePage = app.schools.length < 200;
+
+      conditionsSelected = this.selected();
+      conditionsAllowedByGroup = this.filter(function (condition) { 
+        return _.contains(allowedGroups, condition.get('group'))
+      });
+      
+      if (resultsLessThanOnePage) {
+        // Calculate types of establishments limited by results
+        typeConditions = _.select(conditionsAllowedByGroup, function(condition) {
+          return condition.get('group') == "Type";
+        });
+
+        typesWithinResults = _.uniq(app.schools.map(function(school) {
           return school.get("type");
         }));
-        return this.filter(function (condition) { 
-          if (condition.get('selected')) { return true; };
-
-          if(condition.get('group') == "Type") {
-            conditionType = condition.get('value');
-            return _.contains(typesWithResults, conditionType);
-          } 
-
-          return _.contains(allowedGroups, condition.get('group'))
+        typeConditionsLimitedByResults = _.filter(typeConditions, function (condition) { 
+          return _.contains(typesWithinResults, condition.get('value'));
         });
+
+        nontypeConditions = _.difference(conditionsAllowedByGroup, typeConditions);
+        return _.union(conditionsSelected, nontypeConditions, typeConditionsLimitedByResults)
       } else {
-        return this.filter(function (condition) { 
-          if (condition.get('selected')) { return true; };
-          return _.contains(allowedGroups, condition.get('group'))
-        });
+        return _.union(conditionsSelected, conditionsAllowedByGroup);
       }
 
     },
