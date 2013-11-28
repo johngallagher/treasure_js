@@ -4,22 +4,21 @@
   <title>Treasure JS Proof of Concept</title>
   <link href="css/application.css?body=1" media="all" rel="stylesheet" type="text/css">
   <link href="css/chosen.css?body=1" media="all" rel="stylesheet" type="text/css">
+  <link href="select2/select2.css" media="all" rel="stylesheet" type="text/css">
   <meta content="authenticity_token" name="csrf-param">
   <meta content="JeN23VMeqzt9GSvOwBWhr3Zo+qkV7gg89R7Fd2Qkvpo=" name="csrf-token">
+  <style type="text/css">.select2-container { width: 100% }</style>
 </head>
 <body>
-
   <h1>Treasure JS Proof of Concept</h1>
-
-  <select id="query" multiple="multiple" name="query[]"></select>
-
-  <div id="results">
-  </div>
-
-
+  <input id="query2" name="query[]"></input>
+  <div id="results"></div>
 </body>
+
 <script type="text/javascript" src='jquery/jquery.js'></script>
 <script type="text/javascript" src='chosen/chosen.jquery.js'></script>
+<script type="text/javascript" src='select2/select2.js'></script>
+
 <script type="text/javascript" src='node_modules/backbone/node_modules/underscore/underscore.js'></script>
 <script type="text/javascript" src='node_modules/backbone/backbone.js'></script>
 <script type="text/javascript" src='node_modules/url-template/lib/url-template.js'></script>
@@ -493,18 +492,16 @@ $( document ).ready(function() {
   var prefixes = 'PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX school: <http://education.data.gov.uk/def/school/>';
   var select = ' SELECT ?name ?item ?typeOfEstablishment ?districtAdministrative ?phaseOfEducation';
   var where  = ' WHERE { ' +
-    '?item rdf:type school:School . ' +
-    '?item rdfs:label ?name . ' +
-    '?item school:typeOfEstablishment ?___typeOfEstablishment . ' +
-    '?___typeOfEstablishment rdfs:label ?typeOfEstablishment . ' +
-    '?item school:phaseOfEducation ?___phaseOfEducation . ' +
-    '?___phaseOfEducation rdfs:label ?phaseOfEducation . ' +
-    '?item school:districtAdministrative ?___districtAdministrative . ' +
-    '?___districtAdministrative rdfs:label ?districtAdministrative . ';
+  '?item rdf:type school:School . ' +
+  '?item rdfs:label ?name . ' +
+  '?item school:typeOfEstablishment ?___typeOfEstablishment . ' +
+  '?___typeOfEstablishment rdfs:label ?typeOfEstablishment . ' +
+  '?item school:phaseOfEducation ?___phaseOfEducation . ' +
+  '?___phaseOfEducation rdfs:label ?phaseOfEducation . ' +
+  '?item school:districtAdministrative ?___districtAdministrative . ' +
+  '?___districtAdministrative rdfs:label ?districtAdministrative . ';
   var limit  = ' } OFFSET 0 LIMIT 200';
   var base_url = 'http://education.data.gov.uk/sparql/education/query?query=';
-
-  $('#query').chosen();
 
   var app = app || {};
 
@@ -513,7 +510,6 @@ $( document ).ready(function() {
       return {
         group: null,
         selected: false,
-        selectable: true,
         orderSelected: 0
       };
     },
@@ -592,7 +588,6 @@ $( document ).ready(function() {
           return _.contains(phasesWithinResults, condition.get('value'));
         });
 
-        // nontypeConditions = _.difference(conditionsAllowedByGroup, typeConditions);
         return _.union(conditionsSelected, phaseConditionsLimitedByResults, districtConditionsLimitedByResults, typeConditionsLimitedByResults);
       } else {
         return _.union(conditionsSelected, conditionsAllowedByGroup);
@@ -604,16 +599,6 @@ $( document ).ready(function() {
     },
     selectedCount: function() {
       return this.selected().length;
-    },
-    allowGroup: function(group) {
-      this.forEach(function(condition) {
-        if(condition.get('group') == group || condition.get('selected')) {
-          condition.set('selectable', true);
-        } else {
-          condition.set('selectable', false)
-        };
-        condition.save();
-      });
     },
     select: function(id) {
       selectedCondition = app.Conditions.findWhere({id: id});
@@ -657,9 +642,9 @@ app.ConditionGroupView = Backbone.View.extend({
   var selectable = _.sortBy(app.Conditions.selectable(), function(condition) { return condition.get('orderSelected') });
   var groups = _.groupBy(selectable, function(object) { return object.get('group') });
   this.el = this.template({groups: groups});
-  $('#query').children().remove();
-  $('#query').append(this.el);
-  $('#query').trigger('chosen:updated');
+  $('#query2').children().remove();
+  $('#query2').append(this.el);
+  $('#query2').trigger('chosen:updated');
   return this;
 },
 });
@@ -735,7 +720,7 @@ SchoolsView = Backbone.View.extend({
   render: function() {
     $('#results').html(this.template({schools: app.schools.toArray()}));
   }
-})
+});
 
   app.conditionsGroupView = new app.ConditionGroupView(); // Start the conditions view
   app.selectedConditionsView = new app.SelectedConditionsGroupView();
@@ -755,9 +740,34 @@ SchoolsView = Backbone.View.extend({
     app.Conditions.add(typeOfEstablishments);
   };
 
+  selectable = app.Conditions.selectable();
+
+  $('#query2').select2({
+    multiple: true,
+    query: function (query) {
+      selectable = app.Conditions.selectable();
+      selectable_attributes = selectable.map(function(condition) { return condition.attributes });
+      
+      grouped = _.groupBy(selectable, function(condition) { 
+        return condition.get('group') 
+      });
+
+      data = _.map(grouped, function(value, key, list) { 
+        conditionsForThisGroup = _.filter(selectable, function(condition) { 
+          return condition.get('group') == key; 
+        });
+        conditionsForThisGroupAttributes = conditionsForThisGroup.map(function(condition) { 
+          return condition.attributes; 
+        });
+        return { text: key, children: conditionsForThisGroupAttributes }; 
+      });
+      query.callback({results: data});
+    }
+  });
+
   app.schools.update();
 
-  $('#query').on('change', function(evt, params) {
+  $('#query2').on('change', function(evt, params) {
     conditionWasSelected = params.selected != null;
     if (conditionWasSelected) {
       app.Conditions.select(params.selected);
