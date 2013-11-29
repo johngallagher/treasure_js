@@ -7,7 +7,14 @@
   <link href="select2/select2.css" media="all" rel="stylesheet" type="text/css">
   <meta content="authenticity_token" name="csrf-param">
   <meta content="JeN23VMeqzt9GSvOwBWhr3Zo+qkV7gg89R7Fd2Qkvpo=" name="csrf-token">
-  <style type="text/css">.select2-container { width: 100% }</style>
+  <style type="text/css">
+  .select2-container { 
+    width: 100%; 
+  }
+  .bigdrop, .select2-results { 
+    max-height: 310px;
+  }
+  </style>
 </head>
 <body>
   <h1>Treasure JS Proof of Concept</h1>
@@ -55,12 +62,19 @@ CriteriaGroup = Backbone.RelationalModel.extend({
     key: 'children',
     relatedModel: 'Criteria',
     collectionType: 'CriteriaList',
-    includeInJSON: 'Backbone.Model.prototype.idAttribute',
+    includeInJSON: true,
+    createModels: true,
     reverseRelation: {
       key: 'parent',
-      includeInJSON: 'Backbone.Model.prototype.idAttribute'
+      includeInJSON: true
     }
-  }]
+  }],
+  initialize: function() {
+    // this.on("add:children", function (child) {
+    //   child.save();
+    //   console.log("Saved child " + child.get('text'));
+    // });
+  }
 });
 
 CriteriaGroupList = Backbone.QueryCollection.extend({
@@ -82,14 +96,30 @@ $( document ).ready(function() {
 
   $('#query2').select2({
     multiple: true,
+    dropdownCssClass: "bigdrop",
     query: function (query) {
-      query.term = "Southwark";
-      data = criteriaGroupList.toArray().map(function(group) {
-        thisGroupsQueriedChildren = new CriteriaList(group.get('children').query({text: "Other Independent School"}));
-        return { text: group.get('text'), children: thisGroupsQueriedChildren.toJSON() };
+      dataWithNulls = criteriaGroupList.map(function(group, key, list) {
+        topChildren = group.get('children').query({
+          text: { 
+            $cb: function(attr) { 
+              return attr.toUpperCase().indexOf(query.term.toUpperCase())>=0; 
+            } 
+          } 
+        }, 
+        { 
+          limit: 3 
+        });
+        if (topChildren.length == 0) {
+          return null;
+        } else {
+          thisGroupsQueriedChildren = new CriteriaList(topChildren);
+          return { text: group.get('text'), children: thisGroupsQueriedChildren.toJSON() };
+        }
       });
 
-      query.callback({results: criteriaGroupList.toJSON() });
+      data = _.select(dataWithNulls, function(group) { return group != null; })
+
+      query.callback({results: data });
     }
   });
 });
