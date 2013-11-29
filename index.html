@@ -25,7 +25,7 @@
 <script type="text/javascript" src='node_modules/backbone.localstorage/backbone.localStorage.js'></script>
 <script type="text/javascript" src='node_modules/backbone-query/js/backbone-query.js'></script>
 <script type="text/javascript" src='node_modules/backbone-relational/backbone-relational.js'></script>
-<script type="text/javascript" src='default_data.js'></script>
+<script type="text/javascript" src='default_data_relational.js'></script>
 
 <script type="text/template" id="condition-group-template">
 <% _.each( groups, function( thisGroup){  %>
@@ -76,10 +76,10 @@ $( document ).ready(function() {
 
   var app = app || {};
 
-  app.Condition = Backbone.Model.extend({
+
+  app.Condition = Backbone.RelationalModel.extend({
     defaults: function() {
       return {
-        group: null,
         selected: false,
         orderSelected: 0
       };
@@ -100,6 +100,71 @@ $( document ).ready(function() {
       }
     }
   });
+
+  Criteria = Backbone.RelationalModel.extend({
+    defaults: function() {
+      return {
+        selected: false,
+        orderSelected: 0
+      };
+    },
+    select: function() {
+      this.set('orderSelected', app.Conditions.selectedCount() + 1);
+      this.save({selected: true});
+    },
+    deselect: function() {
+      this.set('orderSelected', 0);
+      this.save({selected: false});
+    },
+    selectedAttribute: function() {
+      if (this.get('selected')) {
+        return " selected";
+      } else {
+        return "";
+      }
+    }
+  });
+
+  CriteriaList = Backbone.QueryCollection.extend({
+    model: Criteria
+  });
+
+  CriteriaGroup = Backbone.RelationalModel.extend({
+    relations: [{
+      type: Backbone.HasMany,
+      key: 'children',
+      relatedModel: 'Criteria',
+      collectionType: 'CriteriaList',
+      reverseRelation: {
+        key: 'parent',
+        includeInJSON: 'id'
+      }
+    }],
+    children_query: function(term) {
+      childrenMatching = this.get("children").query({
+        text: term
+      });
+      return childrenMatching;
+    }
+  });
+
+  CriteriaGroupList = Backbone.QueryCollection.extend({
+    model: CriteriaGroup,
+    localStorage: new Backbone.LocalStorage("conditions-backbone"),
+    queryFor: function(term) {
+      queryFor = this.query({
+        children: {
+          $cb: function(attr) {
+            return attr.get('text') == term;
+          }
+        }
+      });
+      return new CriteriaGroupList(queryFor);
+    }
+  });
+
+  app.criteriaGroups = new CriteriaGroupList();
+  app.criteriaGroups.fetch();
 
   var ConditionList = Backbone.QueryCollection.extend({
     model: app.Condition,
@@ -330,10 +395,10 @@ SchoolsView = Backbone.View.extend({
   app.selectedConditionsView = new app.SelectedConditionsGroupView();
   app.schoolsView = new SchoolsView();
 
-  if (app.Conditions.length == 0) {
-    app.Conditions.add(phases);
-    app.Conditions.add(districtAdministratives);
-    app.Conditions.add(typeOfEstablishments);
+  if (app.criteriaGroups.length == 0) {
+    app.criteriaGroups.create(bulk_data[0]);
+    app.criteriaGroups.create(bulk_data[1]);
+    app.criteriaGroups.create(bulk_data[2]);
   };
 
   // selectable = app.Conditions.selectable();
@@ -341,14 +406,15 @@ SchoolsView = Backbone.View.extend({
   $('#query2').select2({
     multiple: true,
     query: function (query) {
-      data = _.map(["Phase", "Location", "Type"], function(group) { 
-        selectable = app.Conditions.selectableForGroup(group, query.term);
-        return { text: group, children: selectable.toJSON() };
-      });
-      dataStripped = _.select(data, function(group) { 
-        return group.children.length > 0;
-      })
-      query.callback({results: dataStripped });
+      // data = _.map(["Phase", "Location", "Type"], function(group) { 
+      //   selectable = app.Conditions.selectableForGroup(group, query.term);
+      //   return { text: group, children: selectable.toJSON() };
+      // });
+      // dataStripped = _.select(data, function(group) { 
+      //   return group.children.length > 0;
+      // })
+      data = app.criteriaGroups.queryFor(query.term).toJSON();
+      query.callback({results: data });
     }
   });
 
