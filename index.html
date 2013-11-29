@@ -23,6 +23,7 @@
 <script type="text/javascript" src='node_modules/backbone/backbone.js'></script>
 <script type="text/javascript" src='node_modules/url-template/lib/url-template.js'></script>
 <script type="text/javascript" src='node_modules/backbone.localstorage/backbone.localStorage.js'></script>
+<script type="text/javascript" src='node_modules/backbone-query/js/backbone-query.js'></script>
 
 <script type="text/template" id="condition-group-template">
 <% _.each( groups, function( thisGroup){  %>
@@ -530,7 +531,7 @@ $( document ).ready(function() {
     }
   });
 
-  var ConditionList = Backbone.Collection.extend({
+  var ConditionList = Backbone.QueryCollection.extend({
     model: app.Condition,
     localStorage: new Backbone.LocalStorage("conditions-backbone"),
     comparator:  "text",
@@ -540,6 +541,39 @@ $( document ).ready(function() {
         return school.get('group');
       });
       return _.difference(possibleGroups, selectedGroups);
+    },
+    selectableForGroup: function(group, term) {
+      if (term == "") { 
+        intermediate = this.query(
+        {
+          group: group, 
+          selected: false
+        },
+        {
+          limit:3, 
+          page:1, 
+          cache:false
+        });
+      } else {
+        intermediate = this.query(
+        {
+          group: group, 
+          selected: false, 
+          text: 
+          {
+            $cb: function(attr) { 
+              return attr.toUpperCase().indexOf(term.toUpperCase())>=0; // Default matcher for select2
+            }
+          }
+        },
+        {
+          limit:3, 
+          page:1, 
+          cache:false
+        });
+      }
+
+      return new ConditionList(intermediate);
     },
     selectable: function() {
 
@@ -740,28 +774,19 @@ SchoolsView = Backbone.View.extend({
     app.Conditions.add(typeOfEstablishments);
   };
 
-  selectable = app.Conditions.selectable();
+  // selectable = app.Conditions.selectable();
 
   $('#query2').select2({
     multiple: true,
     query: function (query) {
-      selectable = app.Conditions.selectable();
-      selectable_attributes = selectable.map(function(condition) { return condition.attributes });
-      
-      grouped = _.groupBy(selectable, function(condition) { 
-        return condition.get('group') 
+      data = _.map(["Phase", "Location", "Type"], function(group) { 
+        selectable = app.Conditions.selectableForGroup(group, query.term);
+        return { text: group, children: selectable.toJSON() };
       });
-
-      data = _.map(grouped, function(value, key, list) { 
-        conditionsForThisGroup = _.filter(selectable, function(condition) { 
-          return condition.get('group') == key; 
-        });
-        conditionsForThisGroupAttributes = conditionsForThisGroup.map(function(condition) { 
-          return condition.attributes; 
-        });
-        return { text: key, children: conditionsForThisGroupAttributes }; 
-      });
-      query.callback({results: data});
+      dataStripped = _.select(data, function(group) { 
+        return group.children.length > 0;
+      })
+      query.callback({results: dataStripped });
     }
   });
 
