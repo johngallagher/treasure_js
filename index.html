@@ -21,54 +21,57 @@
 <script type="text/javascript" src='node_modules/backbone/node_modules/underscore/underscore.js'></script>
 <script type="text/javascript" src='node_modules/backbone/backbone.js'></script>
 <script type="text/javascript" src='node_modules/backbone.localstorage/backbone.localStorage.js'></script>
+<script type="text/javascript" src='node_modules/query-engine/out/lib/query-engine.js'></script>
 <script type="text/javascript" src='node_modules/backbone-relational/backbone-relational.js'></script>
+<script type="text/javascript" src='node_modules/backbone-query/js/backbone-query.js'></script>
 <script type="text/javascript" src='default_data_relational.js'></script>
 
 <script type="text/javascript">
+Criteria = Backbone.RelationalModel.extend({
+  defaults: function() {
+    return {
+      selected: false,
+      orderSelected: 0
+    };
+  },
+  select: function() {
+    this.set('orderSelected', app.Conditions.selectedCount() + 1);
+    this.save({selected: true});
+  },
+  deselect: function() {
+    this.set('orderSelected', 0);
+    this.save({selected: false});
+  }
+});
+
+CriteriaList = Backbone.QueryCollection.extend({
+  model: Criteria,
+  localStorage: new Backbone.LocalStorage("conditions-backbone")
+});
+
+CriteriaGroup = Backbone.RelationalModel.extend({
+  relations: [{
+    type: Backbone.HasMany,
+    key: 'children',
+    relatedModel: 'Criteria',
+    collectionType: 'CriteriaList',
+    includeInJSON: 'Backbone.Model.prototype.idAttribute',
+    reverseRelation: {
+      key: 'parent',
+      includeInJSON: 'Backbone.Model.prototype.idAttribute'
+    }
+  }]
+});
+
+CriteriaGroupList = Backbone.QueryCollection.extend({
+  model: CriteriaGroup,
+  localStorage: new Backbone.LocalStorage("conditions-backbone"),
+  queryFor: function(term) {
+  }
+});
+
 $( document ).ready(function() {
-
-  Criteria = Backbone.RelationalModel.extend({
-    defaults: function() {
-      return {
-        selected: false,
-        orderSelected: 0
-      };
-    },
-    select: function() {
-      this.set('orderSelected', app.Conditions.selectedCount() + 1);
-      this.save({selected: true});
-    },
-    deselect: function() {
-      this.set('orderSelected', 0);
-      this.save({selected: false});
-    }
-  });
-
-  CriteriaList = Backbone.QueryCollection.extend({
-    model: Criteria,
-    localStorage: new Backbone.LocalStorage("conditions-backbone")
-  });
-
-  CriteriaGroup = Backbone.RelationalModel.extend({
-    relations: [{
-      type: Backbone.HasMany,
-      key: 'children',
-      relatedModel: 'Criteria',
-      collectionType: 'CriteriaList',
-      reverseRelation: {
-        key: 'parent'
-      }
-    }]
-  });
-
-  CriteriaGroupList = Backbone.QueryCollection.extend({
-    model: CriteriaGroup,
-    localStorage: new Backbone.LocalStorage("conditions-backbone"),
-    queryFor: function(term) {
-    }
-  });
-
-  criteriaGroupList = new CriteriaGroupList();
+  var criteriaGroupList = new CriteriaGroupList();
   criteriaGroupList.fetch();
 
   if (criteriaGroupList.length == 0) {
@@ -80,7 +83,13 @@ $( document ).ready(function() {
   $('#query2').select2({
     multiple: true,
     query: function (query) {
-      query.callback({results: data });
+      query.term = "Southwark";
+      data = criteriaGroupList.toArray().map(function(group) {
+        thisGroupsQueriedChildren = new CriteriaList(group.get('children').query({text: "Other Independent School"}));
+        return { text: group.get('text'), children: thisGroupsQueriedChildren.toJSON() };
+      });
+
+      query.callback({results: criteriaGroupList.toJSON() });
     }
   });
 });
