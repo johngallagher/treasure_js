@@ -16,90 +16,16 @@
 </body>
 
 <script type="text/javascript" src='jquery/jquery.js'></script>
-<script type="text/javascript" src='chosen/chosen.jquery.js'></script>
 <script type="text/javascript" src='select2/select2.js'></script>
 
 <script type="text/javascript" src='node_modules/backbone/node_modules/underscore/underscore.js'></script>
 <script type="text/javascript" src='node_modules/backbone/backbone.js'></script>
-<script type="text/javascript" src='node_modules/url-template/lib/url-template.js'></script>
 <script type="text/javascript" src='node_modules/backbone.localstorage/backbone.localStorage.js'></script>
-<script type="text/javascript" src='node_modules/backbone-query/js/backbone-query.js'></script>
 <script type="text/javascript" src='node_modules/backbone-relational/backbone-relational.js'></script>
 <script type="text/javascript" src='default_data_relational.js'></script>
 
-<script type="text/template" id="condition-group-template">
-<% _.each( groups, function( thisGroup){  %>
-  <optgroup label="<%= thisGroup[0].get('group') %>">
-  <% _.each( thisGroup, function( thisItem ){ %>
-    <option value="<%= thisItem.get('id') %>"<%= thisItem.selectedAttribute() %>><%= thisItem.get('text') %></option>
-    <% }) %>
-  </optgroup>
-  <% }) %>
-</script>
-
-<script type="text/template" id="selected-conditions-template">
-<h3>Selected Criteria</h3>
-<% _.each( conditions, function( thisCondition){  %>
-  <div><span><%= thisCondition.get('group') %></span> - <span><%= thisCondition.get('text') %></span></div>
-  <% }) %>
-</script>
-
-<script type="text/template" id="results-template">
-<h3>Results</h3>
-<% _.each( schools, function( thisSchool){  %>
-  <div>
-  <a href="<%= thisSchool.get('item') %>"><%= thisSchool.get('name') %></a>
-  </div>
-  <% }) %>
-</script>
-
 <script type="text/javascript">
 $( document ).ready(function() {
-
-  // Config
-  var paramTemplate = urltemplate.parse(' ?{key}__? rdfs:label "{value}" . ');
-  var tupleTemplate = urltemplate.parse(' {object_1} {relationship} {object_2} . ');
-  var predicateTemplate = urltemplate.parse(' ?___{variable} {relationship} "{value}" . ');
-  var prefixes = 'PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX school: <http://education.data.gov.uk/def/school/>';
-  var select = ' SELECT ?name ?item ?typeOfEstablishment ?districtAdministrative ?phaseOfEducation';
-  var where  = ' WHERE { ' +
-  '?item rdf:type school:School . ' +
-  '?item rdfs:label ?name . ' +
-  '?item school:typeOfEstablishment ?___typeOfEstablishment . ' +
-  '?___typeOfEstablishment rdfs:label ?typeOfEstablishment . ' +
-  '?item school:phaseOfEducation ?___phaseOfEducation . ' +
-  '?___phaseOfEducation rdfs:label ?phaseOfEducation . ' +
-  '?item school:districtAdministrative ?___districtAdministrative . ' +
-  '?___districtAdministrative rdfs:label ?districtAdministrative . ';
-  var limit  = ' } OFFSET 0 LIMIT 200';
-  var base_url = 'http://education.data.gov.uk/sparql/education/query?query=';
-
-  var app = app || {};
-
-
-  app.Condition = Backbone.RelationalModel.extend({
-    defaults: function() {
-      return {
-        selected: false,
-        orderSelected: 0
-      };
-    },
-    select: function() {
-      this.set('orderSelected', app.Conditions.selectedCount() + 1);
-      this.save({selected: true});
-    },
-    deselect: function() {
-      this.set('orderSelected', 0);
-      this.save({selected: false});
-    },
-    selectedAttribute: function() {
-      if (this.get('selected')) {
-        return " selected";
-      } else {
-        return "";
-      }
-    }
-  });
 
   Criteria = Backbone.RelationalModel.extend({
     defaults: function() {
@@ -115,18 +41,12 @@ $( document ).ready(function() {
     deselect: function() {
       this.set('orderSelected', 0);
       this.save({selected: false});
-    },
-    selectedAttribute: function() {
-      if (this.get('selected')) {
-        return " selected";
-      } else {
-        return "";
-      }
     }
   });
 
   CriteriaList = Backbone.QueryCollection.extend({
-    model: Criteria
+    model: Criteria,
+    localStorage: new Backbone.LocalStorage("conditions-backbone")
   });
 
   CriteriaGroup = Backbone.RelationalModel.extend({
@@ -136,303 +56,34 @@ $( document ).ready(function() {
       relatedModel: 'Criteria',
       collectionType: 'CriteriaList',
       reverseRelation: {
-        key: 'parent',
-        includeInJSON: 'id'
+        key: 'parent'
       }
-    }],
-    children_query: function(term) {
-      childrenMatching = this.get("children").query({
-        text: term
-      });
-      return childrenMatching;
-    }
+    }]
   });
 
   CriteriaGroupList = Backbone.QueryCollection.extend({
     model: CriteriaGroup,
     localStorage: new Backbone.LocalStorage("conditions-backbone"),
     queryFor: function(term) {
-      queryFor = this.query({
-        children: {
-          $cb: function(attr) {
-            return attr.get('text') == term;
-          }
-        }
-      });
-      return new CriteriaGroupList(queryFor);
     }
   });
 
-  app.criteriaGroups = new CriteriaGroupList();
-  app.criteriaGroups.fetch();
+  criteriaGroupList = new CriteriaGroupList();
+  criteriaGroupList.fetch();
 
-  var ConditionList = Backbone.QueryCollection.extend({
-    model: app.Condition,
-    localStorage: new Backbone.LocalStorage("conditions-backbone"),
-    comparator:  "text",
-    allowedGroups: function() {
-      possibleGroups = ["Phase", "Location", "Type"];
-      selectedGroups = _.map(this.selected(), function (school) {
-        return school.get('group');
-      });
-      return _.difference(possibleGroups, selectedGroups);
-    },
-    selectableForGroup: function(group, term) {
-      if (term == "") { 
-        intermediate = this.query(
-        {
-          group: group, 
-          selected: false
-        },
-        {
-          limit:3, 
-          page:1, 
-          cache:false
-        });
-      } else {
-        intermediate = this.query(
-        {
-          group: group, 
-          selected: false, 
-          text: 
-          {
-            $cb: function(attr) { 
-              return attr.toUpperCase().indexOf(term.toUpperCase())>=0; // Default matcher for select2
-            }
-          }
-        },
-        {
-          limit:3, 
-          page:1, 
-          cache:false
-        });
-      }
-
-      return new ConditionList(intermediate);
-    },
-    selectable: function() {
-
-      allowedGroups = this.allowedGroups();
-      resultsLessThanOnePage = app.schools.length < 200;
-
-      conditionsSelected = this.selected();
-      conditionsAllowedByGroup = this.filter(function (condition) { 
-        return _.contains(allowedGroups, condition.get('group'))
-      });
-      
-      if (conditionsSelected.length > 0 && resultsLessThanOnePage) {
-        // Calculate types of establishments limited by results
-        typeConditions = _.select(conditionsAllowedByGroup, function(condition) {
-          return condition.get('group') == "Type";
-        });
-
-        typesWithinResults = _.uniq(app.schools.map(function(school) {
-          return school.get("typeOfEstablishment");
-        }));
-        typeConditionsLimitedByResults = _.filter(typeConditions, function (condition) { 
-          return _.contains(typesWithinResults, condition.get('value'));
-        });
-
-        // Calculate types of establishments limited by results
-        districtConditions = _.select(conditionsAllowedByGroup, function(condition) {
-          return condition.get('group') == "Location";
-        });
-
-        districtsWithinResults = _.uniq(app.schools.map(function(school) {
-          return school.get("districtAdministrative");
-        }));
-        districtConditionsLimitedByResults = _.filter(districtConditions, function (condition) { 
-          return _.contains(districtsWithinResults, condition.get('value'));
-        });
-
-        // Calculate types of establishments limited by results
-        phaseConditions = _.select(conditionsAllowedByGroup, function(condition) {
-          return condition.get('group') == "Phase";
-        });
-
-        phasesWithinResults = _.uniq(app.schools.map(function(school) {
-          return school.get("phaseOfEducation");
-        }));
-        phaseConditionsLimitedByResults = _.filter(phaseConditions, function (condition) { 
-          return _.contains(phasesWithinResults, condition.get('value'));
-        });
-
-        return _.union(conditionsSelected, phaseConditionsLimitedByResults, districtConditionsLimitedByResults, typeConditionsLimitedByResults);
-      } else {
-        return _.union(conditionsSelected, conditionsAllowedByGroup);
-      }
-
-    },
-    selected: function() {
-      return _.sortBy(this.where({selected: true}), function(condition) { return condition.get("orderSelected") });
-    },
-    selectedCount: function() {
-      return this.selected().length;
-    },
-    select: function(id) {
-      selectedCondition = app.Conditions.findWhere({id: id});
-      selectedCondition.select();
-    },
-    deselect: function (id) {
-      deselectedCondition = app.Conditions.findWhere({id: id});
-      deselectedCondition.deselect();
-    },
-    updateAll: function() {
-      var collection = this;
-      options = {
-        success: function(model, resp, xhr) {
-          collection.reset(model);
-        }
-      };
-      return Backbone.sync('update', this, options);
-    },
-    saveAll: function() {
-      Backbone.sync('save', this, {
-        success: function(){
-          console.log('users saved!');
-        } 
-      })
-    }
-  });
-app.Conditions = new ConditionList();
-app.Conditions.fetch();
-
-app.ConditionGroupView = Backbone.View.extend({
-  template: _.template($("#condition-group-template").html()),
-
-  initialize: function () {
-   this.listenTo(app.Conditions, 'add', this.add);
- },
-
- add: function(condition) {
-   condition.save();
- },
- render: function() {
-  var selectable = _.sortBy(app.Conditions.selectable(), function(condition) { return condition.get('orderSelected') });
-  var groups = _.groupBy(selectable, function(object) { return object.get('group') });
-  this.el = this.template({groups: groups});
-  $('#query2').children().remove();
-  $('#query2').append(this.el);
-  $('#query2').trigger('chosen:updated');
-  return this;
-},
-});
-
-app.SelectedConditionsGroupView = Backbone.View.extend({
-  template: _.template($("#selected-conditions-template").html()),
-  conditions: function() {
-    return app.Conditions.where({selected: true});
-  },
-  render: function() {
-    $('#results').html(this.template({conditions: this.conditions}));
-  },
-});
-
-var SchoolList = Backbone.Collection.extend({
-  comparator: "name",
-  url: function() {
-    encodedPrefixes = encodeURIComponent(prefixes)
-    encodedSelect   = encodeURIComponent(select)
-    encodedWhere    = encodeURIComponent(where);
-    encodedLimit    = encodeURIComponent(limit);
-    selectedConditions = app.Conditions.where({selected: true});
-    encodedSearchParameters = selectedConditions.map(function(condition) { 
-      return predicateTemplate.expand({
-        variable: condition.get('parameter'), 
-        relationship: "rdfs:label", 
-        value: condition.get('value')
-      });
-    }).join(" ");
-    encodedFormat   = '&output=json&stylesheet=xml-to-html.xsl&force-accept=text%2Fplain';
-
-    return base_url + encodedPrefixes + encodedSelect + encodedWhere + encodedSearchParameters + encodedLimit + encodedFormat;
-  },
-  parse: function (raw_response) {
-    console.log("just parsed");
-    data = raw_response.results.bindings.map(function(result) { 
-      return {
-        "item":result.item.value, 
-        "name":result.name.value, 
-        "typeOfEstablishment":result.typeOfEstablishment.value,
-        "phaseOfEducation":result.phaseOfEducation.value,
-        "districtAdministrative":result.districtAdministrative.value
-      }; 
-    });
-    return data;
-  },
-  update: function() {
-    if (app.Conditions.selected().length == 0) {
-      app.schools.reset();
-      app.schoolsView.render();
-      app.conditionsGroupView.render();
-    } else {
-      this.fetch({ 
-        dataType: "jsonp",
-        success: (function(data) {
-          app.schoolsView.render();
-          app.conditionsGroupView.render();
-        }),
-        error: (function(data) {
-          console.log("Error");
-        }),
-        complete: (function(data) {
-          console.log("Complete");
-        })
-      });
-    }
-  }
-});
-app.schools = new SchoolList();
-
-SchoolsView = Backbone.View.extend({
-  template: _.template($('#results-template').html()),
-  render: function() {
-    $('#results').html(this.template({schools: app.schools.toArray()}));
-  }
-});
-
-  app.conditionsGroupView = new app.ConditionGroupView(); // Start the conditions view
-  app.selectedConditionsView = new app.SelectedConditionsGroupView();
-  app.schoolsView = new SchoolsView();
-
-  if (app.criteriaGroups.length == 0) {
-    app.criteriaGroups.create(bulk_data[0]);
-    app.criteriaGroups.create(bulk_data[1]);
-    app.criteriaGroups.create(bulk_data[2]);
+  if (criteriaGroupList.length == 0) {
+    criteriaGroupList.create(bulk_data[0]);
+    criteriaGroupList.create(bulk_data[1]);
+    criteriaGroupList.create(bulk_data[2]);
   };
-
-  // selectable = app.Conditions.selectable();
 
   $('#query2').select2({
     multiple: true,
     query: function (query) {
-      // data = _.map(["Phase", "Location", "Type"], function(group) { 
-      //   selectable = app.Conditions.selectableForGroup(group, query.term);
-      //   return { text: group, children: selectable.toJSON() };
-      // });
-      // dataStripped = _.select(data, function(group) { 
-      //   return group.children.length > 0;
-      // })
-      data = app.criteriaGroups.queryFor(query.term).toJSON();
       query.callback({results: data });
     }
   });
-
-  app.schools.update();
-
-  $('#query2').on('change', function(evt, params) {
-    conditionWasSelected = params.selected != null;
-    if (conditionWasSelected) {
-      app.Conditions.select(params.selected);
-    } else {
-      app.Conditions.deselect(params.deselected);
-    };
-    app.schools.update();
-    
-  });
-
 });
-
 
 </script>
 </html>
