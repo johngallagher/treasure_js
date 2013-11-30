@@ -180,6 +180,11 @@ $( document ).ready(function() {
       return data;
     },
     update: function() {
+      if (criteriaGroupList.selectedCriteria().length == 0) {
+        schools.reset();
+        schoolsView.render();
+        return;
+      }
       this.fetch({ 
         dataType: "jsonp",
         success: (function(data) {
@@ -195,34 +200,34 @@ $( document ).ready(function() {
     }
   });
 
-  SchoolsView = Backbone.View.extend({
-    template: _.template($('#results-template').html()),
-    render: function() {
-      $('#results').html(this.template({schools: schools.toArray()}));
-    }
-  });
+SchoolsView = Backbone.View.extend({
+  template: _.template($('#results-template').html()),
+  render: function() {
+    $('#results').html(this.template({schools: schools.toArray()}));
+  }
+});
 
-  schools = new SchoolList();
-  schoolsView = new SchoolsView();
+schools = new SchoolList();
+schoolsView = new SchoolsView();
 
-  schools.update();
+schools.update();
 
-  $('#query2').select2({
-    multiple: true,
-    dropdownCssClass: "bigdrop",
-    query: function (query) {
-      dataWithNulls = criteriaGroupList.map(function(group, key, list) {
-        matchingChildren = group.get('children').query({
-          text: { 
-            $cb: function(attr) { 
-              return attr.toUpperCase().indexOf(query.term.toUpperCase())>=0; 
-            } 
-          }, 
-          selected: false 
-        });
-        if (matchingChildren.length == 0) { return null; };
+$('#query2').select2({
+  multiple: true,
+  dropdownCssClass: "bigdrop",
+  query: function (query) {
+    dataWithNulls = criteriaGroupList.map(function(group, key, list) {
+      matchingChildren = group.get('children').query({
+        text: { 
+          $cb: function(attr) { 
+            return attr.toUpperCase().indexOf(query.term.toUpperCase())>=0; 
+          } 
+        }, 
+        selected: false 
+      });
+      if (matchingChildren.length == 0) { return null; };
 
-        if (matchingChildren.length > 2) {
+      if (matchingChildren.length > 2) {
           // Append the "load more" footer 
           firstThreeChildren = _.first(matchingChildren, 2)
           loadMoreFooter = {id: "NA", text: (matchingChildren.length - 2) + " more..."};
@@ -232,24 +237,24 @@ $( document ).ready(function() {
         return { text: group.get('text'), children: thisGroupsQueriedChildren.toJSON() };
       });
 
-      data = _.select(dataWithNulls, function(group) { return group != null; })
+    data = _.select(dataWithNulls, function(group) { return group != null; })
 
-      query.callback({results: data });
-    }
-  });
+    query.callback({results: data });
+  }
+});
 
-  $("#query2").on("change", function(e) {
-    if (e.added != null) {
-      selectedCriteria = criteriaGroupList.criteriaWithID(e.added.id)[0];
-      selectedCriteria.select();
-    };
-    if (e.removed != null) {
-      selectedCriteria = criteriaGroupList.criteriaWithID(e.removed.id)[0];
-      selectedCriteria.deselect();
-    };
-    console.log("Selected conditions are " + criteriaGroupList.selectedCriteria().map(function (c) { return c.get('text'); }));
-    schools.update();
-  });
+$("#query2").on("change", function(e) {
+  if (e.added != null) {
+    selectedCriteria = criteriaGroupList.criteriaWithID(e.added.id)[0];
+    selectedCriteria.select();
+  };
+  if (e.removed != null) {
+    selectedCriteria = criteriaGroupList.criteriaWithID(e.removed.id)[0];
+    selectedCriteria.deselect();
+  };
+  console.log("Selected conditions are " + criteriaGroupList.selectedCriteria().map(function (c) { return c.get('text'); }));
+  schools.update();
+});
 });
 </script>
 </html>
