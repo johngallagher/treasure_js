@@ -7,6 +7,16 @@
   <link href="select2/select2.css" media="all" rel="stylesheet" type="text/css">
   <meta content="authenticity_token" name="csrf-param">
   <meta content="JeN23VMeqzt9GSvOwBWhr3Zo+qkV7gg89R7Fd2Qkvpo=" name="csrf-token">
+  <script type="text/javascript" src='jquery/jquery.js'></script>
+  <script type="text/javascript" src='select2/select2.js'></script>
+
+  <script type="text/javascript" src='node_modules/backbone/node_modules/underscore/underscore.js'></script>
+  <script type="text/javascript" src='node_modules/backbone/backbone.js'></script>
+  <script type="text/javascript" src='node_modules/backbone.localstorage/backbone.localStorage.js'></script>
+  <script type="text/javascript" src='node_modules/query-engine/out/lib/query-engine.js'></script>
+  <script type="text/javascript" src='node_modules/backbone-relational/backbone-relational.js'></script>
+  <script type="text/javascript" src='node_modules/backbone-query/js/backbone-query.js'></script>
+  <script type="text/javascript" src='default_data_relational.js'></script>
   <style type="text/css">
   .select2-container { 
     width: 100%; 
@@ -22,16 +32,6 @@
   <div id="results"></div>
 </body>
 
-<script type="text/javascript" src='jquery/jquery.js'></script>
-<script type="text/javascript" src='select2/select2.js'></script>
-
-<script type="text/javascript" src='node_modules/backbone/node_modules/underscore/underscore.js'></script>
-<script type="text/javascript" src='node_modules/backbone/backbone.js'></script>
-<script type="text/javascript" src='node_modules/backbone.localstorage/backbone.localStorage.js'></script>
-<script type="text/javascript" src='node_modules/query-engine/out/lib/query-engine.js'></script>
-<script type="text/javascript" src='node_modules/backbone-relational/backbone-relational.js'></script>
-<script type="text/javascript" src='node_modules/backbone-query/js/backbone-query.js'></script>
-<script type="text/javascript" src='default_data_relational.js'></script>
 
 <script type="text/javascript">
 Criteria = Backbone.RelationalModel.extend({
@@ -90,12 +90,11 @@ CriteriaGroupList = Backbone.QueryCollection.extend({
 $( document ).ready(function() {
   var criteriaGroupList = new CriteriaGroupList();
   criteriaGroupList.fetch({wait: true});
-  // criteriaGroupList.reset({wait: true});
 
   if (criteriaGroupList.length == 0) {
-    criteriaGroupList.create(bulk_data[0]);
-    criteriaGroupList.create(bulk_data[1]);
-    criteriaGroupList.create(bulk_data[2]);
+    _.each(bulk_data, function(group) {
+      criteriaGroupList.create(group);
+    });
 
     criteriaGroupList.fetch({wait: true});
   };
