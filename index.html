@@ -94,7 +94,32 @@ CriteriaGroup = Backbone.RelationalModel.extend({
       key: 'parent',
       includeInJSON: true
     }
-  }]
+  }],
+  childrenMatching: function(term) {
+    return this.get('children').query({
+      text: { 
+        $cb: function(attr) { 
+          return attr.toUpperCase().indexOf(term.toUpperCase())>=0; 
+        } 
+      }, 
+      selected: false 
+    });
+  },
+  childrenMatchingInResults: function(term) {
+    thisGroupType = this.get('parameter');
+    parametersInResults = _.uniq(schools.map(function (school) { return school.get(thisGroupType)}));
+    matchingResults = this.get('children').query({
+      text: { 
+        $cb: function(attr) { 
+          return attr.toUpperCase().indexOf(term.toUpperCase())>=0; 
+        } 
+      }, 
+      selected: false 
+    });
+    return _.select(matchingResults, function(result) { 
+      return _.contains(parametersInResults, result.get('text')); 
+    });
+  }
 });
 
 CriteriaGroupList = Backbone.QueryCollection.extend({
@@ -224,27 +249,29 @@ $('#query2').select2({
     });
 
     dataWithNulls = allowedGroups.map(function(group, key, list) {
-      matchingChildren = group.get('children').query({
-        text: { 
-          $cb: function(attr) { 
-            return attr.toUpperCase().indexOf(query.term.toUpperCase())>=0; 
-          } 
-        }, 
-        selected: false 
-      });
-      if (matchingChildren.length == 0) { return null; };
+      allResultsAreShown = (schools.length < 200 && schools.length > 0);
+      if (allResultsAreShown) {
+        matchingCriteria = group.childrenMatchingInResults(query.term);
+      } else {
+        matchingCriteria = group.childrenMatching(query.term);
+      }
 
-      if (matchingChildren.length > 2) {
-          // Append the "load more" footer 
-          firstThreeChildren = _.first(matchingChildren, 2)
-          loadMoreFooter = {id: "NA", text: (matchingChildren.length - 2) + " more..."};
-          matchingChildren = _.union(firstThreeChildren, [loadMoreFooter]);
-        };
-        thisGroupsQueriedChildren = new CriteriaList(matchingChildren);
-        return { text: group.get('text'), children: thisGroupsQueriedChildren.toJSON() };
-      });
+      noResults = (matchingCriteria.length == 0);
+      if (noResults) { return null; };
 
-    data = _.select(dataWithNulls, function(group) { return group != null; })
+      moreResultsThanWeCanShow = (matchingCriteria.length > 2);
+      if (moreResultsThanWeCanShow) {
+        // Append the "load more" footer 
+        limitedCriteria = _.first(matchingCriteria, 2)
+        loadMoreFooter = {id: "NA", text: (matchingCriteria.length - 2) + " more..."};
+        matchingCriteria = _.union(limitedCriteria, [loadMoreFooter]);
+      };
+      matchingCriteriaList = new CriteriaList(matchingCriteria);
+      return { text: group.get('text'), children: matchingCriteriaList.toJSON() };
+    });
+
+    // Filter out the nulls
+    data = _.select(dataWithNulls, function(group) { return group != null; });
 
     query.callback({results: data });
   }
