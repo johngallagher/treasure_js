@@ -114,7 +114,12 @@ $( document ).ready(function() {
         if (matchingChildren.length == 0) {
           return null;
         } else {
-          thisGroupsQueriedChildren = new CriteriaList(_.first(matchingChildren, 3));
+          if (matchingChildren.length > 2) {
+            firstThreeChildren = _.first(matchingChildren, 2)
+            loadMoreFooter = {id: "NA", text: (matchingChildren.length - 2) + " more..."};
+            matchingChildren = _.union(firstThreeChildren, [loadMoreFooter]);
+          };
+          thisGroupsQueriedChildren = new CriteriaList(matchingChildren);
           return { text: group.get('text'), children: thisGroupsQueriedChildren.toJSON() };
         }
       });
