@@ -104,20 +104,17 @@ $( document ).ready(function() {
     dropdownCssClass: "bigdrop",
     query: function (query) {
       dataWithNulls = criteriaGroupList.map(function(group, key, list) {
-        topChildren = group.get('children').query({
+        matchingChildren = group.get('children').query({
           text: { 
             $cb: function(attr) { 
               return attr.toUpperCase().indexOf(query.term.toUpperCase())>=0; 
             } 
           } 
-        }, 
-        { 
-          limit: 3 
         });
-        if (topChildren.length == 0) {
+        if (matchingChildren.length == 0) {
           return null;
         } else {
-          thisGroupsQueriedChildren = new CriteriaList(topChildren);
+          thisGroupsQueriedChildren = new CriteriaList(_.first(matchingChildren, 3));
           return { text: group.get('text'), children: thisGroupsQueriedChildren.toJSON() };
         }
       });
