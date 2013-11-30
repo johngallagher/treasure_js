@@ -216,7 +216,14 @@ $('#query2').select2({
   multiple: true,
   dropdownCssClass: "bigdrop",
   query: function (query) {
-    dataWithNulls = criteriaGroupList.map(function(group, key, list) {
+    allowedGroups = criteriaGroupList.select(function(criteriaGroup) { 
+      selectedGroupIDs = _.map(criteriaGroupList.selectedCriteria(), function(criteria) {
+        return criteria.get('parent').id;
+      });
+      return _.contains(selectedGroupIDs, criteriaGroup.id) == false;
+    });
+
+    dataWithNulls = allowedGroups.map(function(group, key, list) {
       matchingChildren = group.get('children').query({
         text: { 
           $cb: function(attr) { 
