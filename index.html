@@ -68,30 +68,36 @@ CriteriaGroup = Backbone.RelationalModel.extend({
       key: 'parent',
       includeInJSON: true
     }
-  }],
-  initialize: function() {
-    // this.on("add:children", function (child) {
-    //   child.save();
-    //   console.log("Saved child " + child.get('text'));
-    // });
-  }
+  }]
 });
 
 CriteriaGroupList = Backbone.QueryCollection.extend({
   model: CriteriaGroup,
   localStorage: new Backbone.LocalStorage("conditions-backbone"),
+  initialize: function() {
+    this.on("add", function (group) {
+      group.get('children').each(function (child) {
+        if (child.isNew()) {
+          child.save();
+        };
+      });
+    });
+  },
   queryFor: function(term) {
   }
 });
 
 $( document ).ready(function() {
   var criteriaGroupList = new CriteriaGroupList();
-  criteriaGroupList.fetch();
+  criteriaGroupList.fetch({wait: true});
+  // criteriaGroupList.reset({wait: true});
 
   if (criteriaGroupList.length == 0) {
     criteriaGroupList.create(bulk_data[0]);
     criteriaGroupList.create(bulk_data[1]);
     criteriaGroupList.create(bulk_data[2]);
+
+    criteriaGroupList.fetch({wait: true});
   };
 
   $('#query2').select2({
