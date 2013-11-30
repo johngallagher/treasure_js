@@ -16,6 +16,7 @@
   <script type="text/javascript" src='node_modules/query-engine/out/lib/query-engine.js'></script>
   <script type="text/javascript" src='node_modules/backbone-relational/backbone-relational.js'></script>
   <script type="text/javascript" src='node_modules/backbone-query/js/backbone-query.js'></script>
+  <script type="text/javascript" src='node_modules/url-template/lib/url-template.js'></script>
   <script type="text/javascript" src='default_data_relational.js'></script>
   <style type="text/css">
   .select2-container { 
@@ -32,8 +33,35 @@
   <div id="results"></div>
 </body>
 
+<script type="text/template" id="results-template">
+<h3>Results</h3>
+<% _.each( schools, function( thisSchool){  %>
+  <div>
+  <a href="<%= thisSchool.get('item') %>"><%= thisSchool.get('name') %></a>
+  </div>
+  <% }) %>
+</script>
 
 <script type="text/javascript">
+
+// Config
+var paramTemplate = urltemplate.parse(' ?{key}__? rdfs:label "{value}" . ');
+var tupleTemplate = urltemplate.parse(' {object_1} {relationship} {object_2} . ');
+var predicateTemplate = urltemplate.parse(' ?___{variable} {relationship} "{value}" . ');
+var prefixes = 'PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX school: <http://education.data.gov.uk/def/school/>';
+var select = ' SELECT ?name ?item ?typeOfEstablishment ?districtAdministrative ?phaseOfEducation';
+var where  = ' WHERE { ' +
+'?item rdf:type school:School . ' +
+'?item rdfs:label ?name . ' +
+'?item school:typeOfEstablishment ?___typeOfEstablishment . ' +
+'?___typeOfEstablishment rdfs:label ?typeOfEstablishment . ' +
+'?item school:phaseOfEducation ?___phaseOfEducation . ' +
+'?___phaseOfEducation rdfs:label ?phaseOfEducation . ' +
+'?item school:districtAdministrative ?___districtAdministrative . ' +
+'?___districtAdministrative rdfs:label ?districtAdministrative . ';
+var limit  = ' } OFFSET 0 LIMIT 200';
+var base_url = 'http://education.data.gov.uk/sparql/education/query?query=';
+
 Criteria = Backbone.RelationalModel.extend({
   defaults: function() {
     return {
@@ -42,11 +70,9 @@ Criteria = Backbone.RelationalModel.extend({
     };
   },
   select: function() {
-    this.set('orderSelected', app.Conditions.selectedCount() + 1);
     this.save({selected: true});
   },
   deselect: function() {
-    this.set('orderSelected', 0);
     this.save({selected: false});
   }
 });
@@ -83,7 +109,29 @@ CriteriaGroupList = Backbone.QueryCollection.extend({
       });
     });
   },
-  queryFor: function(term) {
+  criteriaContaining: function(term) {
+    dataWithNulls = this.map(function(group, key, list) {
+      matchingChildren = group.get('children').query({
+        text: { 
+          $cb: function(attr) { 
+            return attr.toUpperCase().indexOf(term.toUpperCase())>=0; 
+          } 
+        } 
+      });
+    });
+    return _.select(dataWithNulls, function(child) { return child != null });
+  },
+  selectedCriteria: function() {
+    selectedCriteriaNested = this.map(function(group, key, list) {
+      return group.get('children').query({ selected: true });
+    });
+    return _.flatten(selectedCriteriaNested, 1);
+  },
+  criteriaWithID: function(id) {
+    selectedCriteriaNested = this.map(function(group, key, list) {
+      return group.get('children').query({ id: id });
+    });
+    return _.flatten(selectedCriteriaNested, 1);
   }
 });
 
@@ -99,6 +147,66 @@ $( document ).ready(function() {
     criteriaGroupList.fetch({wait: true});
   };
 
+  SchoolList = Backbone.Collection.extend({
+    comparator: "name",
+    url: function() {
+      encodedPrefixes = encodeURIComponent(prefixes)
+      encodedSelect   = encodeURIComponent(select)
+      encodedWhere    = encodeURIComponent(where);
+      encodedLimit    = encodeURIComponent(limit);
+      selectedCriteria = criteriaGroupList.selectedCriteria();
+      encodedSearchParameters = selectedCriteria.map(function(condition) { 
+        return predicateTemplate.expand({
+          variable: condition.get('parent').get('parameter'), 
+          relationship: "rdfs:label", 
+          value: condition.get('text')
+        });
+      }).join(" ");
+      encodedFormat   = '&output=json&stylesheet=xml-to-html.xsl&force-accept=text%2Fplain';
+
+      return base_url + encodedPrefixes + encodedSelect + encodedWhere + encodedSearchParameters + encodedLimit + encodedFormat;
+    },
+    parse: function (raw_response) {
+      console.log("just parsed");
+      data = raw_response.results.bindings.map(function(result) { 
+        return {
+          "item":result.item.value, 
+          "name":result.name.value, 
+          "typeOfEstablishment":result.typeOfEstablishment.value,
+          "phaseOfEducation":result.phaseOfEducation.value,
+          "districtAdministrative":result.districtAdministrative.value
+        }; 
+      });
+      return data;
+    },
+    update: function() {
+      this.fetch({ 
+        dataType: "jsonp",
+        success: (function(data) {
+          schoolsView.render();
+        }),
+        error: (function(data) {
+          console.log("Error");
+        }),
+        complete: (function(data) {
+          console.log("Complete");
+        })
+      });
+    }
+  });
+
+  SchoolsView = Backbone.View.extend({
+    template: _.template($('#results-template').html()),
+    render: function() {
+      $('#results').html(this.template({schools: schools.toArray()}));
+    }
+  });
+
+  schools = new SchoolList();
+  schoolsView = new SchoolsView();
+
+  schools.update();
+
   $('#query2').select2({
     multiple: true,
     dropdownCssClass: "bigdrop",
@@ -109,19 +217,19 @@ $( document ).ready(function() {
             $cb: function(attr) { 
               return attr.toUpperCase().indexOf(query.term.toUpperCase())>=0; 
             } 
-          } 
+          }, 
+          selected: false 
         });
-        if (matchingChildren.length == 0) {
-          return null;
-        } else {
-          if (matchingChildren.length > 2) {
-            firstThreeChildren = _.first(matchingChildren, 2)
-            loadMoreFooter = {id: "NA", text: (matchingChildren.length - 2) + " more..."};
-            matchingChildren = _.union(firstThreeChildren, [loadMoreFooter]);
-          };
-          thisGroupsQueriedChildren = new CriteriaList(matchingChildren);
-          return { text: group.get('text'), children: thisGroupsQueriedChildren.toJSON() };
-        }
+        if (matchingChildren.length == 0) { return null; };
+
+        if (matchingChildren.length > 2) {
+          // Append the "load more" footer 
+          firstThreeChildren = _.first(matchingChildren, 2)
+          loadMoreFooter = {id: "NA", text: (matchingChildren.length - 2) + " more..."};
+          matchingChildren = _.union(firstThreeChildren, [loadMoreFooter]);
+        };
+        thisGroupsQueriedChildren = new CriteriaList(matchingChildren);
+        return { text: group.get('text'), children: thisGroupsQueriedChildren.toJSON() };
       });
 
       data = _.select(dataWithNulls, function(group) { return group != null; })
@@ -129,7 +237,19 @@ $( document ).ready(function() {
       query.callback({results: data });
     }
   });
-});
 
+  $("#query2").on("change", function(e) {
+    if (e.added != null) {
+      selectedCriteria = criteriaGroupList.criteriaWithID(e.added.id)[0];
+      selectedCriteria.select();
+    };
+    if (e.removed != null) {
+      selectedCriteria = criteriaGroupList.criteriaWithID(e.removed.id)[0];
+      selectedCriteria.deselect();
+    };
+    console.log("Selected conditions are " + criteriaGroupList.selectedCriteria().map(function (c) { return c.get('text'); }));
+    schools.update();
+  });
+});
 </script>
 </html>
