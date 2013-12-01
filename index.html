@@ -95,6 +95,11 @@ CriteriaGroup = Backbone.RelationalModel.extend({
       includeInJSON: true
     }
   }],
+  defaults: function() {
+    return {
+      loadedChildren: 2
+    };
+  },
   childrenMatching: function(term) {
     return this.get('children').query({
       text: { 
@@ -235,6 +240,7 @@ $('#query2').select2({
   multiple: true,
   dropdownCssClass: "bigdrop",
   query: function (query) {
+    // Disallow groups already selected
     allowedGroups = criteriaGroupList.select(function(criteriaGroup) { 
       selectedGroupIDs = _.map(criteriaGroupList.selectedCriteria(), function(criteria) {
         return criteria.get('parent').id;
@@ -243,6 +249,7 @@ $('#query2').select2({
     });
 
     dataWithNulls = allowedGroups.map(function(group, key, list) {
+      // Only show options in results
       allResultsAreShown = (schools.length < 200 && schools.length > 0);
       if (allResultsAreShown) {
         matchingCriteria = group.childrenMatchingInResults(query.term);
@@ -253,11 +260,12 @@ $('#query2').select2({
       noResults = (matchingCriteria.length == 0);
       if (noResults) { return null; };
 
-      moreResultsThanWeCanShow = (matchingCriteria.length > 2);
-      if (moreResultsThanWeCanShow) {
-        // Append the "load more" footer 
-        limitedCriteria = _.first(matchingCriteria, 2)
-        loadMoreFooter = {id: "NA", text: (matchingCriteria.length - 2) + " more..."};
+      // Limit to one page of loaded children
+      // Append the "load more" footer 
+      moreCriteriaThanWeCanShow = (matchingCriteria.length > group.get('loadedChildren'));
+      if (moreCriteriaThanWeCanShow) {
+        limitedCriteria = _.first(matchingCriteria, group.get('loadedChildren'))
+        loadMoreFooter = { id: "LOADMORE", text: (matchingCriteria.length - group.get('loadedChildren')) + " more...", loadMoreGroup: group.id };
         matchingCriteria = _.union(limitedCriteria, [loadMoreFooter]);
       };
       matchingCriteriaList = new CriteriaList(matchingCriteria);
@@ -280,8 +288,13 @@ $("#query2").on("change", function(e) {
     selectedCriteria = criteriaGroupList.criteriaWithID(e.removed.id)[0];
     selectedCriteria.deselect();
   };
-  console.log("Selected conditions are " + criteriaGroupList.selectedCriteria().map(function (c) { return c.get('text'); }));
   schools.update();
+})
+.on("select2-selecting", function(e) { 
+  selectedLoadMore = (e.object.loadMoreGroup != null);
+  if (selectedLoadMore) {
+    e.preventDefault();
+  }
 });
 });
 </script>
