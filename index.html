@@ -107,16 +107,10 @@ CriteriaGroup = Backbone.RelationalModel.extend({
   },
   childrenMatchingInResults: function(term) {
     thisGroupType = this.get('parameter');
-    parametersInResults = _.uniq(schools.map(function (school) { return school.get(thisGroupType)}));
-    matchingResults = this.get('children').query({
-      text: { 
-        $cb: function(attr) { 
-          return attr.toUpperCase().indexOf(term.toUpperCase())>=0; 
-        } 
-      }, 
-      selected: false 
-    });
-    return _.select(matchingResults, function(result) { 
+    parametersInResults = _.uniq(schools.map(function (school) { 
+      return school.get(thisGroupType);
+    }));
+    return _.select(this.childrenMatching(term), function(result) { 
       return _.contains(parametersInResults, result.get('text')); 
     });
   }
