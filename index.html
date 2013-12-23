@@ -9,16 +9,17 @@
   <meta content="JeN23VMeqzt9GSvOwBWhr3Zo+qkV7gg89R7Fd2Qkvpo=" name="csrf-token">
 
   <script type="text/javascript" src='jquery/jquery.js'></script>
+  <script type="text/javascript" src='select2/select2.js'></script>
   <script type="text/javascript" src='node_modules/backbone/node_modules/underscore/underscore.js'></script>
   <script type="text/javascript" src='node_modules/backbone/backbone.js'></script>
   <script type="text/javascript" src='node_modules/backbone.localstorage/backbone.localStorage.js'></script>
-  <script type="text/javascript" src='backbone-autocomplete.js'></script>
   <script type="text/javascript" src='backbone.autocomplete.js'></script>
 </head>
 <body>
   <h1>Treasure JS Proof of Concept</h1>
   <form id="autocomplete-remote">
     <input id="plugin" autocomplete="off" style="width: 200px">
+    <input id="select2" autocomplete="off" style="width: 200px">
   </form>
   <div id="r"></div>
 </body>
@@ -26,47 +27,64 @@
 
 $(function () {
 
-  var Plugin = Backbone.Model.extend({
+  var Term = Backbone.Model.extend({
     label: function () {
       return this.get("value");
     }
   });
 
-  var PluginCollection = Backbone.Collection.extend({
+  var Terms = Backbone.Collection.extend({
     url: function() { return 'http://localhost:3000/api/v1/searches.json' },
-    model: Plugin
+    model: Term
   });
 
-  
-  var plugins = new PluginCollection([]);
+  var terms = new Terms([]);
+
+  var Query = Backbone.Collection.extend({
+    model: Term
+  });
+
+  var query = new Query([]);
+  query.on("add", function(term) {
+    console.log("Term added: " + term);
+  });
 
   new AutoCompleteView({
     input: $("#plugin"),
-    model: plugins,
+    model: terms,
     wait: 50,
     queryParameter: "q",
     minKeywordLength: 0,
     onSelect: function (model) {
-      $("#selected").show().find("p").html(model.label());
+      query.add(model);
     }
   }).render();
 
+// $('#s2id_autogen1').val("")
+  $(document).ready(function() {
+    $('#select2').select2({
+      multiple: true,
+      minimumInputLength: 1,
+      closeOnSelect: false,
+      ajax: { 
+        url: 'http://localhost:3000/api/v1/searches.json',
+        // dataType: 'json',
+        data: function (term, page) {
+            return {
+                q: term
+            };
+        },
+        results: function (data, page) { 
+            return {results: data};
+        }
+      }
+    });
+    $('#select2').on("select2-selecting", function(e) { $('#s2id_autogen1').val("") });
+    
+  });
 });
 </script>
 
-<script>
-autocompleteRemote = new Backbone.AutocompleteList({
-  url: function() { return 'http://localhost:3000/api/v1/searches.json?q=' + $('form#autocomplete-remote input[name=search]').val() },
-  filter: null,
-  el: $('form#autocomplete-remote input[name=search]'),
-  template: _.template('<p class="result"><%= value %> (<%= name %>)</p>'),
-  delay: 100,
-  minLength: 1,
-  value: function(model) { return model.get('value') },
-  name: function(model) { return model.get('name') },
-}).resultsView.collection.parse = function(resp) {
-  return resp.terms;
-};
 
 </script>
 </html>

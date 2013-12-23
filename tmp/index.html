@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Treasure JS Proof of Concept</title>
+  <link href="css/application.css?body=1" media="all" rel="stylesheet" type="text/css">
+  <link href="css/chosen.css?body=1" media="all" rel="stylesheet" type="text/css">
+  <link href="select2/select2.css" media="all" rel="stylesheet" type="text/css">
+  <meta content="authenticity_token" name="csrf-param">
+  <meta content="JeN23VMeqzt9GSvOwBWhr3Zo+qkV7gg89R7Fd2Qkvpo=" name="csrf-token">
+  <script type="text/javascript" src='jquery/jquery.js'></script>
+  <script type="text/javascript" src='select2/select2.js'></script>
+
+  <script type="text/javascript" src='node_modules/backbone/node_modules/underscore/underscore.js'></script>
+  <script type="text/javascript" src='node_modules/backbone/backbone.js'></script>
+  <script type="text/javascript" src='node_modules/backbone.localstorage/backbone.localStorage.js'></script>
+  <script type="text/javascript" src='node_modules/query-engine/out/lib/query-engine.js'></script>
+  <script type="text/javascript" src='node_modules/backbone-relational/backbone-relational.js'></script>
+  <script type="text/javascript" src='node_modules/backbone-query/js/backbone-query.js'></script>
+  <script type="text/javascript" src='node_modules/url-template/lib/url-template.js'></script>
+  <script type="text/javascript" src='default_data_relational.js'></script>
+  <style type="text/css">
+  .select2-container { 
+    width: 100%; 
+  }
+  .bigdrop, .select2-results { 
+    max-height: 310px;
+  }
+  </style>
+</head>
+<body>
+  <h1>Treasure JS Proof of Concept</h1>
+  <input id="query2" name="query[]"></input>
+  <div id="results"></div>
+</body>
+
+<script type="text/template" id="results-template">
+<h3>Results</h3>
+<% _.each( schools, function( thisSchool){  %>
+  <div>
+  <a href="<%= thisSchool.get('item') %>"><%= thisSchool.get('name') %></a>
+  </div>
+  <% }) %>
+</script>
+
+<script type="text/javascript">
+
+// Config
+var paramTemplate = urltemplate.parse(' ?{key}__? rdfs:label "{value}" . ');
+var tupleTemplate = urltemplate.parse(' {object_1} {relationship} {object_2} . ');
+var predicateTemplate = urltemplate.parse(' ?___{variable} {relationship} "{value}" . ');
+var prefixes = 'PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX school: <http://education.data.gov.uk/def/school/>';
+var select = ' SELECT ?name ?item ?typeOfEstablishment ?districtAdministrative ?phaseOfEducation';
+var where  = ' WHERE { ' +
+'?item rdf:type school:School . ' +
+'?item rdfs:label ?name . ' +
+'?item school:typeOfEstablishment ?___typeOfEstablishment . ' +
+'?___typeOfEstablishment rdfs:label ?typeOfEstablishment . ' +
+'?item school:phaseOfEducation ?___phaseOfEducation . ' +
+'?___phaseOfEducation rdfs:label ?phaseOfEducation . ' +
+'?item school:districtAdministrative ?___districtAdministrative . ' +
+'?___districtAdministrative rdfs:label ?districtAdministrative . ';
+var limit  = ' } OFFSET 0 LIMIT 200';
+var base_url = 'http://education.data.gov.uk/sparql/education/query?query=';
+
+Criteria = Backbone.RelationalModel.extend({
+  defaults: function() {
+    return {
+      selected: false,
+      orderSelected: 0
+    };
+  },
+  select: function() {
+    this.save({selected: true});
+  },
+  deselect: function() {
+    this.save({selected: false});
+  }
+});
+
+CriteriaList = Backbone.QueryCollection.extend({
+  model: Criteria,
+  localStorage: new Backbone.LocalStorage("conditions-backbone")
+});
+
+CriteriaGroup = Backbone.RelationalModel.extend({
+  relations: [{
+    type: Backbone.HasMany,
+    key: 'children',
+    relatedModel: 'Criteria',
+    collectionType: 'CriteriaList',
+    includeInJSON: true,
+    createModels: true,
+    reverseRelation: {
+      key: 'parent',
+      includeInJSON: true
+    }
+  }],
+  defaults: function() {
+    return {
+      loadedChildren: 2
+    };
+  },
+  childrenMatching: function(term) {
+    return this.get('children').query({
+      text: { 
+        $cb: function(attr) { 
+          return attr.toUpperCase().indexOf(term.toUpperCase())>=0; 
+        } 
+      }, 
+      selected: false 
+    });
+  },
+  childrenMatchingInResults: function(term) {
+    thisGroupType = this.get('parameter');
+    parametersInResults = _.uniq(schools.map(function (school) { 
+      return school.get(thisGroupType);
+    }));
+    return _.select(this.childrenMatching(term), function(result) { 
+      return _.contains(parametersInResults, result.get('text')); 
+    });
+  }
+});
+
+CriteriaGroupList = Backbone.QueryCollection.extend({
+  model: CriteriaGroup,
+  localStorage: new Backbone.LocalStorage("conditions-backbone"),
+  initialize: function() {
+    this.on("add", function (group) {
+      group.get('children').each(function (child) {
+        if (child.isNew()) {
+          child.save();
+        };
+      });
+    });
+  },
+  criteriaContaining: function(term) {
+    dataWithNulls = this.map(function(group, key, list) {
+      matchingChildren = group.get('children').query({
+        text: { 
+          $cb: function(attr) { 
+            return attr.toUpperCase().indexOf(term.toUpperCase())>=0; 
+          } 
+        } 
+      });
+    });
+    return _.select(dataWithNulls, function(child) { return child != null });
+  },
+  selectedCriteria: function() {
+    selectedCriteriaNested = this.map(function(group, key, list) {
+      return group.get('children').query({ selected: true });
+    });
+    return _.flatten(selectedCriteriaNested, 1);
+  },
+  criteriaWithID: function(id) {
+    selectedCriteriaNested = this.map(function(group, key, list) {
+      return group.get('children').query({ id: id });
+    });
+    return _.flatten(selectedCriteriaNested, 1);
+  }
+});
+
+$( document ).ready(function() {
+  var criteriaGroupList = new CriteriaGroupList();
+  criteriaGroupList.fetch({wait: true});
+
+  if (criteriaGroupList.length == 0) {
+    _.each(bulk_data, function(group) {
+      criteriaGroupList.create(group);
+    });
+
+    criteriaGroupList.fetch({wait: true});
+  };
+
+  SchoolList = Backbone.Collection.extend({
+    comparator: "name",
+    url: function() {
+      encodedPrefixes = encodeURIComponent(prefixes)
+      encodedSelect   = encodeURIComponent(select)
+      encodedWhere    = encodeURIComponent(where);
+      encodedLimit    = encodeURIComponent(limit);
+      selectedCriteria = criteriaGroupList.selectedCriteria();
+      encodedSearchParameters = selectedCriteria.map(function(condition) { 
+        return predicateTemplate.expand({
+          variable: condition.get('parent').get('parameter'), 
+          relationship: "rdfs:label", 
+          value: condition.get('text')
+        });
+      }).join(" ");
+      encodedFormat   = '&output=json&stylesheet=xml-to-html.xsl&force-accept=text%2Fplain';
+
+      return base_url + encodedPrefixes + encodedSelect + encodedWhere + encodedSearchParameters + encodedLimit + encodedFormat;
+    },
+    parse: function (raw_response) {
+      console.log("just parsed");
+      data = raw_response.results.bindings.map(function(result) { 
+        return {
+          "item":result.item.value, 
+          "name":result.name.value, 
+          "typeOfEstablishment":result.typeOfEstablishment.value,
+          "phaseOfEducation":result.phaseOfEducation.value,
+          "districtAdministrative":result.districtAdministrative.value
+        }; 
+      });
+      return data;
+    },
+    update: function() {
+      if (criteriaGroupList.selectedCriteria().length == 0) {
+        schools.reset();
+        schoolsView.render();
+        return;
+      }
+      this.fetch({ 
+        dataType: "jsonp",
+        success: (function(data) {
+          schoolsView.render();
+        }),
+        error: (function(data) {
+          console.log("Error");
+        }),
+        complete: (function(data) {
+          console.log("Complete");
+        })
+      });
+    }
+  });
+
+SchoolsView = Backbone.View.extend({
+  template: _.template($('#results-template').html()),
+  render: function() {
+    $('#results').html(this.template({schools: schools.toArray()}));
+  }
+});
+
+schools = new SchoolList();
+schoolsView = new SchoolsView();
+
+schools.update();
+
+$('#query2').select2({
+  multiple: true,
+  dropdownCssClass: "bigdrop",
+  query: function (query) {
+    // Disallow groups already selected
+    allowedGroups = criteriaGroupList.select(function(criteriaGroup) { 
+      selectedGroupIDs = _.map(criteriaGroupList.selectedCriteria(), function(criteria) {
+        return criteria.get('parent').id;
+      });
+      return _.contains(selectedGroupIDs, criteriaGroup.id) == false;
+    });
+
+    dataWithNulls = allowedGroups.map(function(group, key, list) {
+      // Only show options in results
+      allResultsAreShown = (schools.length < 200 && schools.length > 0);
+      if (allResultsAreShown) {
+        matchingCriteria = group.childrenMatchingInResults(query.term);
+      } else {
+        matchingCriteria = group.childrenMatching(query.term);
+      }
+
+      noResults = (matchingCriteria.length == 0);
+      if (noResults) { return null; };
+
+      // Limit to one page of loaded children
+      // Append the "load more" footer 
+      moreCriteriaThanWeCanShow = (matchingCriteria.length > group.get('loadedChildren'));
+      if (moreCriteriaThanWeCanShow) {
+        limitedCriteria = _.first(matchingCriteria, group.get('loadedChildren'))
+        loadMoreFooter = { id: "LOADMORE", text: (matchingCriteria.length - group.get('loadedChildren')) + " more...", loadMoreGroup: group.id };
+        matchingCriteria = _.union(limitedCriteria, [loadMoreFooter]);
+      };
+      matchingCriteriaList = new CriteriaList(matchingCriteria);
+      return { text: group.get('text'), children: matchingCriteriaList.toJSON() };
+    });
+
+    // Filter out the nulls
+    data = _.select(dataWithNulls, function(group) { return group != null; });
+
+    query.callback({results: data });
+  }
+});
+
+$("#query2").on("change", function(e) {
+  if (e.added != null) {
+    selectedCriteria = criteriaGroupList.criteriaWithID(e.added.id)[0];
+    selectedCriteria.select();
+  };
+  if (e.removed != null) {
+    selectedCriteria = criteriaGroupList.criteriaWithID(e.removed.id)[0];
+    selectedCriteria.deselect();
+  };
+  schools.update();
+})
+.on("select2-selecting", function(e) { 
+  selectedLoadMore = (e.object.loadMoreGroup != null);
+  if (selectedLoadMore) {
+    e.preventDefault();
+  }
+});
+});
+</script>
+</html>
