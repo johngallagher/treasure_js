@@ -63,9 +63,16 @@ $(function () {
 // $('#s2id_autogen1').val("")
   $(document).ready(function() {
     $('#select2').select2({
+      initSelection : function (element, callback) {
+        var data = [];
+        $(element.val().split(" ")).each(function () {
+            data.push({id: this, text: this});
+        });
+        callback(data);
+      },
       multiple: true,
       minimumInputLength: 1,
-      closeOnSelect: false,
+      closeOnSelect: true,
       ajax: { 
         url: 'http://localhost:3000/api/v1/searches.json',
         // dataType: 'json',
@@ -79,7 +86,9 @@ $(function () {
         }
       }
     });
-    $('#select2').on("select2-selecting", function(e) { $('#s2id_autogen1').val("") });
+    $('#select2').on("change", function(e) { 
+      $('#select2').select2("open");
+    });
     
   });
 });
