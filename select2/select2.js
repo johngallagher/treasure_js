@@ -678,7 +678,7 @@ the specific language governing permissions and limitations under the Apache Lic
 
             syncCssClasses(this.container, this.opts.element, this.opts.adaptContainerCssClass);
 
-            this.container.attr("style", opts.element.attr("style"));
+            // this.container.attr("style", opts.element.attr("style"));
             this.container.css(evaluate(opts.containerCss));
             this.container.addClass(evaluate(opts.containerCssClass));
 
@@ -1756,7 +1756,6 @@ the specific language governing permissions and limitations under the Apache Lic
         initContainerWidth: function () {
             function resolveContainerWidth() {
                 var style, attrs, matches, i, l, attr;
-
                 if (this.opts.width === "off") {
                     return null;
                 } else if (this.opts.width === "element"){
@@ -2519,11 +2518,11 @@ the specific language governing permissions and limitations under the Apache Lic
                     }
                     else if (e.which === KEY.BACKSPACE) {
                         this.unselect(selected.first());
-                        this.search.width(10);
+                        // this.search.width(10);
                         selectedChoice = prev.length ? prev : next;
                     } else if (e.which == KEY.DELETE) {
                         this.unselect(selected.first());
-                        this.search.width(10);
+                        // this.search.width(10);
                         selectedChoice = next.length ? next : null;
                     } else if (e.which == KEY.ENTER) {
                         selectedChoice = null;
@@ -2680,9 +2679,9 @@ the specific language governing permissions and limitations under the Apache Lic
                 this.search.val(placeholder).addClass("select2-default");
                 // stretch the search box to full width of the container so as much of the placeholder is visible as possible
                 // we could call this.resizeSearch(), but we do not because that requires a sizer and we do not want to create one so early because of a firefox bug, see #944
-                this.search.width(maxWidth > 0 ? maxWidth : this.container.css("width"));
+                // this.search.width(maxWidth > 0 ? maxWidth : this.container.css("width"));
             } else {
-                this.search.val("").width(10);
+                // this.search.val("").width(10);
             }
         },
 
@@ -2770,10 +2769,10 @@ the specific language governing permissions and limitations under the Apache Lic
 
             if (this.opts.closeOnSelect) {
                 this.close();
-                this.search.width(10);
+                // this.search.width(10);
             } else {
                 if (this.countSelectableResults()>0) {
-                    this.search.width(10);
+                    // this.search.width(10);
                     this.resizeSearch();
                     if (this.getMaximumSelectionSize() > 0 && this.val().length >= this.getMaximumSelectionSize()) {
                         // if we reached max selection size repaint the results so choices
@@ -2784,7 +2783,7 @@ the specific language governing permissions and limitations under the Apache Lic
                 } else {
                     // if nothing left to select close
                     this.close();
-                    this.search.width(10);
+                    // this.search.width(10);
                 }
             }
 
@@ -2965,7 +2964,7 @@ the specific language governing permissions and limitations under the Apache Lic
               searchWidth = minimumWidth;
             }
 
-            this.search.width(Math.floor(searchWidth));
+            // this.search.width(Math.floor(searchWidth));
         },
 
         // multi

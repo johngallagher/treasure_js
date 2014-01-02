@@ -23,7 +23,12 @@
 
   <form id="formy-form">
     <input id="inny">
+    
   </form>
+
+
+    <p>This works...</p>
+    <input onfocus="$(this).hide(); webkitRequestAnimationFrame(function() { $(document).scrollTop(120); $(this).show(); }.bind(this))"/>
   <div id="r"></div>
 </body>
 <script type="text/javascript">
@@ -75,6 +80,7 @@ $(function () {
       multiple: true,
       minimumInputLength: 0,
       closeOnSelect: true,
+      width: "off",
       ajax: { 
         url: 'http://jgmacbookpro.local:3000/api/v1/searches.json',
         // dataType: 'json',
@@ -91,12 +97,6 @@ $(function () {
     });
     // $('#select2').on("change", function(e) { 
     //   $('#select2').select2("open");
-    //   this.style.webkitTransform = 'translate3d(0px,-10000px,0)'; 
-    //   webkitRequestAnimationFrame(function() { 
-    //     this.style.webkitTransform = ''; 
-    //     $(document).scrollTop(80);
-    //     $(document).scrollLeft(10);
-    //   }.bind(this));
     // });
     
     // $('.select2-input').on("keyup focus click", function(e) {
@@ -114,36 +114,73 @@ $(function () {
     //   e.preventDefault();
     //   return false;
     // });
+
+    // $('#s2id_autogen1').on("focus", function(e) {
+    //   // alert("Focussed");
+    //   //   alert("about to change style");
+    //     $(this).attr('style', '-webkit-transform: translate3d(0px,-10000px,0);');
+    //     this.style.webkitTransform = 'translate3d(0px,-10000px,0)'; 
+
+    //     // console.log("added transform, style is now:")
+    //     // alert(this.style.webkitTransform);
+
+    //     webkitRequestAnimationFrame(function() { 
+    //       $(this).attr('style', '');
+    //       this.style.webkitTransform = ''; 
+    //       $(document).scrollTop(100);
+    //       $(document).scrollLeft(10);
+    //       // alert("just scrolled top");
+    //     }.bind(this));
+
+    //   e.stopImmediatePropagation();
+    //   e.preventDefault();
+
+              
+    // });
     
-    $('#inny').on("focus click keyup", function(e) {
+    $('#inny').on("focus", function(e) {
       this.style.webkitTransform = 'translate3d(0px,-10000px,0)'; 
       webkitRequestAnimationFrame(function() { 
         this.style.webkitTransform = ''; 
-        $(document).scrollTop(80);
-        $(document).scrollLeft(10);
-        return false;
+        // $(document).scrollTop(80);
+        // $(document).scrollLeft(10);
+        // return false;
       }.bind(this));
     });
 
-    // $('#s2id_autogen1').on("focus click keyup", function(e) {
+    // $('#s2id_autogen1').on("focus", function(e) {
     //   this.style.webkitTransform = 'translate3d(0px,-10000px,0)'; 
-    //   webkitRequestAnimationFrame(function() { 
+    //   e.stopImmediatePropagation();
+    //   webkitRequestAnimationFrame(function(e) { 
     //     this.style.webkitTransform = ''; 
     //     $(document).scrollTop(80);
     //     $(document).scrollLeft(10);
+    //     e.stopImmediatePropagation();
     //   }.bind(this));
     // });
 
-    $('#select2').on("select2-focus select2-selecting select2-opening change", function(e) {
-      this.style.webkitTransform = 'translate3d(0px,-10000px,0)'; 
-      e.stopImmediatePropagation();
-      webkitRequestAnimationFrame(function(e) { 
-        this.style.webkitTransform = ''; 
-        $(document).scrollTop(80);
-        $(document).scrollLeft(10);
-        e.stopImmediatePropagation();
-      }.bind(this));
-    });
+    // $('#select2').on("select2-focus select2-selecting select2-opening select2-open", function(e) {
+    //   this.style.webkitTransform = 'translate3d(0px,-10000px,0)'; 
+    //   e.stopImmediatePropagation();
+    //   webkitRequestAnimationFrame(function(e) { 
+    //     this.style.webkitTransform = ''; 
+    //     $(document).scrollTop(80);
+    //     $(document).scrollLeft(10);
+    //     e.stopImmediatePropagation();
+    //   }.bind(this));
+    // });
+
+    // $('#select2').on("change", function(e) {
+    //   this.style.webkitTransform = 'translate3d(0px,-10000px,0)'; 
+    //   e.stopImmediatePropagation();
+    //   webkitRequestAnimationFrame(function(e) { 
+    //     this.style.webkitTransform = ''; 
+    //     $(document).scrollTop(80);
+    //     $(document).scrollLeft(10);
+    //     $('#select2').select2("open");
+    //     e.stopImmediatePropagation();
+    //   }.bind(this));
+    // });
 
   });
 
