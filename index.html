@@ -6,7 +6,7 @@
   <link href="select2/select2.css" media="all" rel="stylesheet" type="text/css">
   <meta content="authenticity_token" name="csrf-param">
   <meta content="JeN23VMeqzt9GSvOwBWhr3Zo+qkV7gg89R7Fd2Qkvpo=" name="csrf-token">
-  <meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0;">
+  <meta name="viewport" content="width=320, initial-scale=1.0, maximum-scale=1.0">
 
   <script type="text/javascript" src='jquery/jquery.js'></script>
   <script type="text/javascript" src='select2/select2.js'></script>
@@ -20,58 +20,72 @@
   <form id="autocomplete-remote">
     <input id="select2" autocomplete="off">
   </form>
-  <div id="r"></div>
+  <div id="results">
+  </div>
 </body>
+
+<script type="text/template" id="results-template">
+<h3>Results</h3>
+  <% _.each( vehicles, function( thisVehicle){  %>
+  <div>
+    <div><%= thisVehicle.description() %></div>
+    <div><%= thisVehicle.get('price') %></div>
+  </div>
+  <% }) %>
+</script>
+
 <script type="text/javascript">
 
 $(function () {
 
-  var Term = Backbone.Model.extend({
-    label: function () {
-      return this.get("value");
+  var VehicleModel = Backbone.Model.extend({
+    description: function() {
+      return [this.get('make'), this.get('model'), this.get('variant')].join(" ")
     }
   });
 
-  var Terms = Backbone.Collection.extend({
-    url: function() { return 'http://localhost:3000/api/v1/searches.json' },
-    model: Term
+  var ResultsView = Backbone.View.extend({
+    template: _.template($('#results-template').html()),
+    render: function() {
+      $('#results').html(this.template({vehicles: vehicles.toArray()}));
+    }
   });
 
-  var terms = new Terms([]);
 
-  var Query = Backbone.Collection.extend({
-    model: Term
-  });
+  var VehicleCollection = Backbone.Collection.extend({
+   model: VehicleModel,
 
-  var query = new Query([]);
-  query.on("add", function(term) {
-    console.log("Term added: " + term);
-  });
+   urlRoot: 'http://jgmacbookpro.local:3000/api/v1/searches.json',
+   query: function() {
+    return $('#select2').select2("val").join("||");
+  },
+
+  url: function () {
+    return 'http://jgmacbookpro.local:3000/api/v1/searches.json?q=' + this.query();
+  }
+});
+
+  var vehicles = new VehicleCollection();
+  var results = new ResultsView();
+
 
   $(document).ready(function() {
     $('#select2').select2({
-      initSelection : function (element, callback) {
-        var data = [];
-        $(element.val().split(" ")).each(function () {
-            data.push({id: this, text: this});
-        });
-        callback(data);
-      },
       multiple: true,
       minimumInputLength: 0,
       closeOnSelect: true,
+      openOnEnter: false,
       width: "off",
       ajax: { 
-        url: 'http://jgmacbookpro.local:3000/api/v1/searches.json',
-        // dataType: 'json',
+        url: 'http://jgmacbookpro.local:3000/api/v1/terms.json',
         data: function (term, page) {
-            return {
-                q: term,
-                terms: $('#select2').select2("val")
-            };
+          return {
+            q: term,
+            terms: $('#select2').select2("val")
+          };
         },
         results: function (data, page) { 
-            return {results: data};
+          return {results: data};
         }
       }
     });
@@ -83,15 +97,20 @@ $(function () {
     $('#s2id_autogen1').on("focus", function(e) {
       $(this).hide();
       webkitRequestAnimationFrame(function() { 
-        $(document).scrollTop(45);
-        $(document).scrollLeft(8);
+        $(document).scrollTop(55);
         $(this).show();
       }.bind(this));
     });
-    
+    $('form#autocomplete-remote').submit(function(e) {
+      vehicles.fetch({
+        success: function(collection, response) {
+          results.render();
+        }
+      });
+      e.preventDefault();
+    })
 
   });
-
 });
 
 </script>

@@ -2375,7 +2375,7 @@ the specific language governing permissions and limitations under the Apache Lic
             }).html([
                 "<ul class='select2-choices'>",
                 "  <li class='select2-search-field'>",
-                "    <input type='text' autocomplete='off' autocorrect='off' autocapitalize='off' spellcheck='false' class='select2-input'>",
+                "    <input title='Search' type='text' autocomplete='off' autocorrect='off' autocapitalize='off' spellcheck='false' class='select2-input'>",
                 "  </li>",
                 "</ul>",
                 "<div class='select2-drop select2-drop-multi select2-display-none'>",
@@ -2553,12 +2553,14 @@ the specific language governing permissions and limitations under the Apache Lic
                         killEvent(e);
                         return;
                     case KEY.ENTER:
-                        this.selectHighlighted();
-                        killEvent(e);
+                        this.container.parent('form').submit();
+                        this.close();
+                        // this.selectHighlighted();
+                        // killEvent(e);
                         return;
                     case KEY.TAB:
                         this.selectHighlighted({noFocus:true});
-                        this.close();
+                        // this.close();
                         return;
                     case KEY.ESC:
                         this.cancel(e);
@@ -2605,7 +2607,7 @@ the specific language governing permissions and limitations under the Apache Lic
                 this.search.removeClass("select2-focused");
                 this.selectChoice(null);
                 if (!this.opened()) this.clearSearch();
-                e.stopImmediatePropagation();
+                // e.stopImmediatePropagation();
                 this.opts.element.trigger($.Event("select2-blur"));
             }));
 
