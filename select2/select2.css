@@ -628,11 +628,19 @@ disabled look for disabled choices in the results dropdown
 
 
 
-
-
-
 div#s2id_select2 {
-    /*display: inline;*/
+    width: 100% !important;
+}
+
+body {
+    width: 320px;
+}
+html {
+    width: 320px;
+}
+
+/*
+div#s2id_select2 {
     overflow-x: scroll;
     overflow-y: hidden;
     white-space: nowrap;
@@ -657,3 +665,4 @@ div#s2id_select2 {
     display: inline-block !important;
     white-space: nowrap;
 }
+*/

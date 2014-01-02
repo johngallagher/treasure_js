@@ -6,6 +6,7 @@
   <link href="select2/select2.css" media="all" rel="stylesheet" type="text/css">
   <meta content="authenticity_token" name="csrf-param">
   <meta content="JeN23VMeqzt9GSvOwBWhr3Zo+qkV7gg89R7Fd2Qkvpo=" name="csrf-token">
+  <meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0;">
 
   <script type="text/javascript" src='jquery/jquery.js'></script>
   <script type="text/javascript" src='select2/select2.js'></script>
@@ -21,14 +22,8 @@
     <input id="select2" autocomplete="off">
   </form>
 
-  <form id="formy-form">
-    <input id="inny">
-    
-  </form>
-
-
-    <p>This works...</p>
-    <input onfocus="$(this).hide(); webkitRequestAnimationFrame(function() { $(document).scrollTop(120); $(this).show(); }.bind(this))"/>
+  <p>This works...</p>
+  <input onfocus="$(this).hide(); webkitRequestAnimationFrame(function() { $(document).scrollTop(120); $(this).show(); }.bind(this))"/>
   <div id="r"></div>
 </body>
 <script type="text/javascript">
@@ -57,17 +52,6 @@ $(function () {
     console.log("Term added: " + term);
   });
 
-  new AutoCompleteView({
-    input: $("#plugin"),
-    model: terms,
-    wait: 50,
-    queryParameter: "q",
-    minKeywordLength: 0,
-    onSelect: function (model) {
-      query.add(model);
-    }
-  }).render();
-
   $(document).ready(function() {
     $('#select2').select2({
       initSelection : function (element, callback) {
@@ -95,98 +79,23 @@ $(function () {
         }
       }
     });
-    // $('#select2').on("change", function(e) { 
-    //   $('#select2').select2("open");
-    // });
+    $('#select2').on("change", function(e) { 
+      $('#select2').select2("open");
+    });
     
-    // $('.select2-input').on("keyup focus click", function(e) {
-    //   // $(document).scrollTop(80);
-    //   // $(document).scrollLeft(10);
-    //   e.stopImmediatePropagation();
-    //   e.preventDefault();
-    //   return false;
-    // });
-
-    // $('input').on("keyup focus click", function(e) {
-    //   // $(document).scrollTop(80);
-    //   // $(document).scrollLeft(10);
-    //   e.stopImmediatePropagation();
-    //   e.preventDefault();
-    //   return false;
-    // });
-
-    // $('#s2id_autogen1').on("focus", function(e) {
-    //   // alert("Focussed");
-    //   //   alert("about to change style");
-    //     $(this).attr('style', '-webkit-transform: translate3d(0px,-10000px,0);');
-    //     this.style.webkitTransform = 'translate3d(0px,-10000px,0)'; 
-
-    //     // console.log("added transform, style is now:")
-    //     // alert(this.style.webkitTransform);
-
-    //     webkitRequestAnimationFrame(function() { 
-    //       $(this).attr('style', '');
-    //       this.style.webkitTransform = ''; 
-    //       $(document).scrollTop(100);
-    //       $(document).scrollLeft(10);
-    //       // alert("just scrolled top");
-    //     }.bind(this));
-
-    //   e.stopImmediatePropagation();
-    //   e.preventDefault();
-
-              
-    // });
-    
-    $('#inny').on("focus", function(e) {
-      this.style.webkitTransform = 'translate3d(0px,-10000px,0)'; 
+    $('#s2id_autogen1').on("focus", function(e) {
+      $(this).hide();
       webkitRequestAnimationFrame(function() { 
-        this.style.webkitTransform = ''; 
-        // $(document).scrollTop(80);
-        // $(document).scrollLeft(10);
-        // return false;
+        $(document).scrollTop(95);
+        $(document).scrollLeft(8);
+        $(this).show();
       }.bind(this));
     });
-
-    // $('#s2id_autogen1').on("focus", function(e) {
-    //   this.style.webkitTransform = 'translate3d(0px,-10000px,0)'; 
-    //   e.stopImmediatePropagation();
-    //   webkitRequestAnimationFrame(function(e) { 
-    //     this.style.webkitTransform = ''; 
-    //     $(document).scrollTop(80);
-    //     $(document).scrollLeft(10);
-    //     e.stopImmediatePropagation();
-    //   }.bind(this));
-    // });
-
-    // $('#select2').on("select2-focus select2-selecting select2-opening select2-open", function(e) {
-    //   this.style.webkitTransform = 'translate3d(0px,-10000px,0)'; 
-    //   e.stopImmediatePropagation();
-    //   webkitRequestAnimationFrame(function(e) { 
-    //     this.style.webkitTransform = ''; 
-    //     $(document).scrollTop(80);
-    //     $(document).scrollLeft(10);
-    //     e.stopImmediatePropagation();
-    //   }.bind(this));
-    // });
-
-    // $('#select2').on("change", function(e) {
-    //   this.style.webkitTransform = 'translate3d(0px,-10000px,0)'; 
-    //   e.stopImmediatePropagation();
-    //   webkitRequestAnimationFrame(function(e) { 
-    //     this.style.webkitTransform = ''; 
-    //     $(document).scrollTop(80);
-    //     $(document).scrollLeft(10);
-    //     $('#select2').select2("open");
-    //     e.stopImmediatePropagation();
-    //   }.bind(this));
-    // });
+    
 
   });
 
 });
-</script>
-
 
 </script>
 </html>
