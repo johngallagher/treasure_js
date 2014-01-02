@@ -89,9 +89,15 @@ $(function () {
         }
       }
     });
-    $('#select2').on("change", function(e) { 
-      $('#select2').select2("open");
-    });
+    // $('#select2').on("change", function(e) { 
+    //   $('#select2').select2("open");
+    //   this.style.webkitTransform = 'translate3d(0px,-10000px,0)'; 
+    //   webkitRequestAnimationFrame(function() { 
+    //     this.style.webkitTransform = ''; 
+    //     $(document).scrollTop(80);
+    //     $(document).scrollLeft(10);
+    //   }.bind(this));
+    // });
     
     // $('.select2-input').on("keyup focus click", function(e) {
     //   // $(document).scrollTop(80);
@@ -115,6 +121,27 @@ $(function () {
         this.style.webkitTransform = ''; 
         $(document).scrollTop(80);
         $(document).scrollLeft(10);
+        return false;
+      }.bind(this));
+    });
+
+    // $('#s2id_autogen1').on("focus click keyup", function(e) {
+    //   this.style.webkitTransform = 'translate3d(0px,-10000px,0)'; 
+    //   webkitRequestAnimationFrame(function() { 
+    //     this.style.webkitTransform = ''; 
+    //     $(document).scrollTop(80);
+    //     $(document).scrollLeft(10);
+    //   }.bind(this));
+    // });
+
+    $('#select2').on("select2-focus select2-selecting select2-opening change", function(e) {
+      this.style.webkitTransform = 'translate3d(0px,-10000px,0)'; 
+      e.stopImmediatePropagation();
+      webkitRequestAnimationFrame(function(e) { 
+        this.style.webkitTransform = ''; 
+        $(document).scrollTop(80);
+        $(document).scrollLeft(10);
+        e.stopImmediatePropagation();
       }.bind(this));
     });
 
