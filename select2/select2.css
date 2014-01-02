@@ -613,3 +613,47 @@ disabled look for disabled choices in the results dropdown
       background-position: 100% -21px !important;
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+div#s2id_select2 {
+    /*display: inline;*/
+    overflow-x: scroll;
+    overflow-y: hidden;
+    white-space: nowrap;
+    width: 200px !important;
+}
+
+.select2-container-multi .select2-choices {
+    display: inline-block !important;
+    height: 28px !important;
+    max-height: 28px !important;
+    overflow-x: scroll;
+    overflow-y: hidden;
+    white-space: nowrap;
+    width: 600px;
+}
+
+.select2-container-multi .select2-choices .select2-search-choice {
+    display: inline-block !important;
+    white-space: nowrap;
+}
+.select2-container-multi .select2-choices .select2-search-field {
+    display: inline-block !important;
+    white-space: nowrap;
+}

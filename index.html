@@ -2,8 +2,7 @@
 <html>
 <head>
   <title>Treasure JS Proof of Concept</title>
-  <link href="css/application.css?body=1" media="all" rel="stylesheet" type="text/css">
-  <link href="css/chosen.css?body=1" media="all" rel="stylesheet" type="text/css">
+  <link href="css/application.css" media="all" rel="stylesheet" type="text/css">
   <link href="select2/select2.css" media="all" rel="stylesheet" type="text/css">
   <meta content="authenticity_token" name="csrf-param">
   <meta content="JeN23VMeqzt9GSvOwBWhr3Zo+qkV7gg89R7Fd2Qkvpo=" name="csrf-token">
@@ -18,8 +17,12 @@
 <body>
   <h1>Treasure JS Proof of Concept</h1>
   <form id="autocomplete-remote">
-    <input id="plugin" autocomplete="off" style="width: 200px">
-    <input id="select2" autocomplete="off" style="width: 200px">
+    <input id="plugin" autocomplete="off">
+    <input id="select2" autocomplete="off">
+  </form>
+
+  <form id="formy-form">
+    <input id="inny">
   </form>
   <div id="r"></div>
 </body>
@@ -60,7 +63,6 @@ $(function () {
     }
   }).render();
 
-// $('#s2id_autogen1').val("")
   $(document).ready(function() {
     $('#select2').select2({
       initSelection : function (element, callback) {
@@ -71,14 +73,15 @@ $(function () {
         callback(data);
       },
       multiple: true,
-      minimumInputLength: 1,
+      minimumInputLength: 0,
       closeOnSelect: true,
       ajax: { 
-        url: 'http://localhost:3000/api/v1/searches.json',
+        url: 'http://jgmacbookpro.local:3000/api/v1/searches.json',
         // dataType: 'json',
         data: function (term, page) {
             return {
-                q: term
+                q: term,
+                terms: $('#select2').select2("val")
             };
         },
         results: function (data, page) { 
@@ -90,7 +93,33 @@ $(function () {
       $('#select2').select2("open");
     });
     
+    // $('.select2-input').on("keyup focus click", function(e) {
+    //   // $(document).scrollTop(80);
+    //   // $(document).scrollLeft(10);
+    //   e.stopImmediatePropagation();
+    //   e.preventDefault();
+    //   return false;
+    // });
+
+    // $('input').on("keyup focus click", function(e) {
+    //   // $(document).scrollTop(80);
+    //   // $(document).scrollLeft(10);
+    //   e.stopImmediatePropagation();
+    //   e.preventDefault();
+    //   return false;
+    // });
+    
+    $('#inny').on("focus click keyup", function(e) {
+      this.style.webkitTransform = 'translate3d(0px,-10000px,0)'; 
+      webkitRequestAnimationFrame(function() { 
+        this.style.webkitTransform = ''; 
+        $(document).scrollTop(80);
+        $(document).scrollLeft(10);
+      }.bind(this));
+    });
+
   });
+
 });
 </script>
 
