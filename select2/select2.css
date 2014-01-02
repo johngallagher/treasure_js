@@ -632,13 +632,21 @@ div#s2id_select2 {
     width: 95% !important;
 }
 
-body {
+.select2-container-multi .select2-choices .select2-search-choice {
+    clear: none;
+}
+
+.select2-container-multi .select2-choices .select2-search-field {
+    clear: none;
+}
+
+/*body {
     width: 320px;
 }
 html {
     width: 320px;
 }
-
+*/
 /*
 div#s2id_select2 {
     overflow-x: scroll;

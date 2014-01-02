@@ -25,38 +25,34 @@
 </body>
 
 <script type="text/template" id="results-template">
-<h3>Results</h3>
-  <% _.each( vehicles, function( thisVehicle){  %>
+<% _.each( vehicles, function( thisVehicle){  %>
   <div>
-    <div><%= thisVehicle.description() %></div>
-    <div><%= thisVehicle.get('price') %></div>
+  <div><%= thisVehicle.description() %></div>
+  <div><%= thisVehicle.get('price') %></div>
   </div>
   <% }) %>
 </script>
 
 <script type="text/javascript">
 
-$(function () {
+var VehicleModel = Backbone.Model.extend({
+  description: function() {
+    return [this.get('make'), this.get('model'), this.get('variant')].join(" ")
+  }
+});
 
-  var VehicleModel = Backbone.Model.extend({
-    description: function() {
-      return [this.get('make'), this.get('model'), this.get('variant')].join(" ")
-    }
-  });
+var ResultsView = Backbone.View.extend({
+  template: _.template($('#results-template').html()),
+  render: function() {
+    $('#results').html(this.template({vehicles: vehicles.toArray()}));
+  }
+});
 
-  var ResultsView = Backbone.View.extend({
-    template: _.template($('#results-template').html()),
-    render: function() {
-      $('#results').html(this.template({vehicles: vehicles.toArray()}));
-    }
-  });
+var VehicleCollection = Backbone.Collection.extend({
+  model: VehicleModel,
 
-
-  var VehicleCollection = Backbone.Collection.extend({
-   model: VehicleModel,
-
-   urlRoot: 'http://jgmacbookpro.local:3000/api/v1/searches.json',
-   query: function() {
+  urlRoot: 'http://jgmacbookpro.local:3000/api/v1/searches.json',
+  query: function() {
     return $('#select2').select2("val").join("||");
   },
 
@@ -65,51 +61,50 @@ $(function () {
   }
 });
 
-  var vehicles = new VehicleCollection();
-  var results = new ResultsView();
+var vehicles = new VehicleCollection();
+var results = new ResultsView();
 
+$(document).ready(function() {
+  $('#select2').select2({
+    multiple: true,
+    minimumInputLength: 0,
+    closeOnSelect: true,
+    openOnEnter: false,
+    width: "off",
+    ajax: { 
+      url: 'http://jgmacbookpro.local:3000/api/v1/terms.json',
+      data: function (term, page) {
+        return {
+          q: term,
+          terms: $('#select2').select2("val")
+        };
+      },
+      results: function (data, page) { 
+        return {results: data};
+      }
+    }
+  });
 
-  $(document).ready(function() {
-    $('#select2').select2({
-      multiple: true,
-      minimumInputLength: 0,
-      closeOnSelect: true,
-      openOnEnter: false,
-      width: "off",
-      ajax: { 
-        url: 'http://jgmacbookpro.local:3000/api/v1/terms.json',
-        data: function (term, page) {
-          return {
-            q: term,
-            terms: $('#select2').select2("val")
-          };
-        },
-        results: function (data, page) { 
-          return {results: data};
-        }
+  $('#select2').on("change", function(e) { 
+    $('#s2id_autogen1').val("");
+    $('#select2').select2("open");
+  });
+
+  $('#s2id_autogen1').on("focus", function(e) {
+    $(this).hide();
+    webkitRequestAnimationFrame(function() { 
+      $(document).scrollTop(55);
+      $(this).show();
+    }.bind(this));
+  });
+  
+  $('form#autocomplete-remote').submit(function(e) {
+    vehicles.fetch({
+      success: function(collection, response) {
+        results.render();
       }
     });
-    $('#select2').on("change", function(e) { 
-      $('#s2id_autogen1').val("");
-      $('#select2').select2("open");
-    });
-    
-    $('#s2id_autogen1').on("focus", function(e) {
-      $(this).hide();
-      webkitRequestAnimationFrame(function() { 
-        $(document).scrollTop(55);
-        $(this).show();
-      }.bind(this));
-    });
-    $('form#autocomplete-remote').submit(function(e) {
-      vehicles.fetch({
-        success: function(collection, response) {
-          results.render();
-        }
-      });
-      e.preventDefault();
-    })
-
+    e.preventDefault();
   });
 });
 
