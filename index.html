@@ -16,14 +16,10 @@
   <script type="text/javascript" src='backbone.autocomplete.js'></script>
 </head>
 <body>
-  <h1>Treasure JS Proof of Concept</h1>
+  <h1>Treasure JS</h1>
   <form id="autocomplete-remote">
-    <input id="plugin" autocomplete="off">
     <input id="select2" autocomplete="off">
   </form>
-
-  <p>This works...</p>
-  <input onfocus="$(this).hide(); webkitRequestAnimationFrame(function() { $(document).scrollTop(120); $(this).show(); }.bind(this))"/>
   <div id="r"></div>
 </body>
 <script type="text/javascript">
@@ -80,13 +76,14 @@ $(function () {
       }
     });
     $('#select2').on("change", function(e) { 
+      $('#s2id_autogen1').val("");
       $('#select2').select2("open");
     });
     
     $('#s2id_autogen1').on("focus", function(e) {
       $(this).hide();
       webkitRequestAnimationFrame(function() { 
-        $(document).scrollTop(95);
+        $(document).scrollTop(45);
         $(document).scrollLeft(8);
         $(this).show();
       }.bind(this));
