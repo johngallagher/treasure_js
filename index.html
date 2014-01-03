@@ -25,12 +25,47 @@
 </body>
 
 <script type="text/template" id="results-template">
+<ul class="hlisting">
+
 <% _.each( vehicles, function( thisVehicle){  %>
-  <div>
-  <div><%= thisVehicle.description() %></div>
-  <div><%= thisVehicle.get('price') %></div>
-  </div>
+
+  <li rel="ARNEF-U-8170" class="hproduct">
+    <h2 class="fn">
+      <a href="/used-cars/honda/civic/1.4i-s-3dr/2002-(02)/ref/arnef-u-8170/">2002 (02) Honda Civic</a>
+    </h2>
+    <p class="summary">1.4i S 3dr</p>
+    <textarea style="display: none" class="branch-name-output">Kilmarnock Peugeot / Toyota / Prestige &amp; Performance</textarea>
+    <textarea style="display: none" class="branch-code-output">ARNEF</textarea>
+    <a href="/used-cars/honda/civic/1.4i-s-3dr/2002-(02)/ref/arnef-u-8170/">
+      <img class="photo" id="showroom_image_ARNEF-U-8170" alt="2002 Honda Civic 1.4i S 3dr" src="http://imagecache.arnoldclark.com/imageserver/ANRGNHE2F5-GUS8/196/f/">
+    </a>
+    <ul class="price-info">
+      <li class="price">£1988</li>
+    </ul>
+    <ul class="cta">
+      <li>
+        <a class="button url" href="/used-cars/honda/civic/1.4i-s-3dr/2002-(02)/ref/arnef-u-8170/">More Details<span>about Honda Civic</span>
+        </a>
+      </li>
+      <li>
+        <a class="button shortlist" rel="ARNEF-U-8170" href="#">Add&nbsp;<span><em>&nbsp;</em>Honda Civic</span>to shortlist</a>
+      </li>
+    </ul>
+
+    <ul class="description">
+      <li class="ch-fueltype">Petrol</li>
+      <li class="ch-miles">Mileage 87,922</li>
+      <li class="ch-bodytype Hatchback">Hatchback&nbsp;</li>
+      <li class="ch-color Silver">Silver</li>
+    </ul>
+    <p class="branch">
+      <span>Branch:&nbsp;</span>
+      <a href="/find-a-dealer-search/kilmarnock-peugeot-/-toyota-/-prestige-&amp;-performance/phone-used/ref/arnef/">Kilmarnock Peugeot / Toyota / Prestige &amp; Performance</a>
+    </p>
+  </li>
+
   <% }) %>
+</ul>
 </script>
 
 <script type="text/javascript">
@@ -97,7 +132,7 @@ $(document).ready(function() {
       $(this).show();
     }.bind(this));
   });
-  
+
   $('form#autocomplete-remote').submit(function(e) {
     vehicles.fetch({
       success: function(collection, response) {

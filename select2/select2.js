@@ -2554,7 +2554,7 @@ the specific language governing permissions and limitations under the Apache Lic
                         return;
                     case KEY.ENTER:
                         this.container.parent('form').submit();
-                        this.close();
+                        this.blur();
                         // this.selectHighlighted();
                         // killEvent(e);
                         return;
