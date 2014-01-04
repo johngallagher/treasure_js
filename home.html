@@ -166,140 +166,7 @@
               </div>
             </div>
           </div>
-          <div class="footer">
-            <div class="section" id="shortlist">
-              <div id="sl-text">
-                <h2>Shortlist</h2>
-                <p>Compare your chosen cars</p>
-                <b id="sl-number" title="0 cars in your shortlist">
-                  0
-                  <span>cars in your shortlist</span>
-                </b>
-              </div>
-              <ul>
-                <li class="prev">
-                  <a href="#">Previous</a>
-                </li>
-                <li class="sl-car"></li>
-                <li class="sl-car"></li>
-                <li class="sl-car"></li>
-                <li class="sl-car"></li>
-                <li class="sl-car"></li>
-                <li class="sl-car"></li>
-                <li class="next">
-                  <a href="#">Next</a>
-                </li>
-                <li class="view-shortlist">
-                  <a href="/showroom/" class="button">See All</a>
-                </li>
-              </ul>
-            </div>
-            <div class="x" id="footer-added">
-              <a class="logo" href="/" title="ArnoldClark.com">ArnoldClark.com</a>
-              <div class="part-1">
-                <dl class="tel-nos">
-                  <dt>Customer Services:</dt>
-                  <dd>0844 815 2129</dd>
-                  <dt>Car & Van Rental:</dt>
-                  <dd>0843 308 3265</dd>
-                </dl>
-                <ul class="footer-menu">
-                  <li>
-                    <a href="/customer-services/" title="Contact Us">Contact Us</a>
-                  </li>
-                  <li>
-                    <a href="/about-us/" title="About Us">About Us</a>
-                  </li>
-                  <li>
-                    <a href="http://servicebooking.arnoldclark.com" title="Book a Service">Book a Service</a>
-                  </li>
-                  <li>
-                    <a href="http://www.autopartsuk.com" title="Car Parts">Car Parts</a>
-                  </li>
-                  <li>
-                    <a href="/newsroom/" title="Newsroom">Newsroom</a>
-                  </li>
-                  <li>
-                    <a href="/videos/" title="Car Video Reviews">Car Video Reviews</a>
-                  </li>
-                </ul>
-              </div>
-              <div class="part-2">
-                <form action="http://arnoldclark.createsend.com/t/j/s/hhuthh/" method="post">
-                  <label for="subscr-email">Get our exclusive news and offers</label>
-                  <input type="text" name="cm-hhuthh-hhuthh" id="subscr-email" placeholder="Enter your email address" />
-                  <button type="submit">Subscribe</button>
-                </form>
-                <ul class="social">
-                  <li class="fb">
-                    <a href="https://www.facebook.com/ArnoldClarkAutomobiles" title="Arnold Clark on Facebook">Arnold Clark on Facebook</a>
-                  </li>
-                  <li class="twit">
-                    <a href="https://twitter.com/arnoldclark/" title="Arnold Clark on Twitter">Arnold Clark on Twitter</a>
-                  </li>
-                  <li class="g-plus">
-                    <a href="https://plus.google.com/+arnoldclark" title="Arnold Clark on Google +">Arnold Clark on Google +</a>
-                  </li>
-                  <li class="you-tube">
-                    <a href="http://www.youtube.com/user/ArnoldClarkAutos/" title="Arnold Clark on YouTube">Arnold Clark on YouTube</a>
-                  </li>
-                  <li class="pinterest">
-                    <a href="https://www.pinterest.com/arnoldclark/" title="Arnold Clark on Pinterest">Arnold Clark on Pinterest</a>
-                  </li>
-                </ul>
-              </div>
-              <!-- /.part-2 -->
-              <ul class="usps">
-                <li class="am">
-                  AM Retailer
-                  <span>of the Year 2012 & 2013</span>
-                </li>
-                <li class="largest">
-                  Europe's largest
-                  <span>independent car dealer</span>
-                </li>
-                <li class="sixty">
-                  59 years
-                  <span>experience in the industry</span>
-                </li>
-                <li class="satisfaction">
-                  93%
-                  <span>customer satisfaction</span>
-                </li>
-              </ul>
-            </div>
-            <!-- /.x -->
-            <div id="terms">
-              <div class="x">
-                <ul>
-                  <li>
-                    <a href="/terms-of-use">
-                      Terms
-                      <span>of use</span>
-                    </a>
-                    /li>
-                    <li class="privacy">
-                      <a class="information" href="/cookies">
-                        <span>Privacy &</span>
-                        Cookies
-                        <span>Policy</span>
-                      </a>
-                    </li>
-                    <li>
-                      &copy; Arnold Clark
-                      <span>Automobiles Limited</span>
-                      <span>2000-</span>
-                      2013.
-                    </li>
-                  </ul>
-                </div>
-                <!-- /.x -->
-              </div>
-              <!-- /#terms -->
-            </div>
-            <!-- .footer -->
-            <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7/jquery.min.js" type="text/javascript" charset="utf-8"></script>
-            <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.23/jquery-ui.min.js" type="text/javascript" charset="utf-8"></script>
+
     <!--[if lt IE 8]>
   <script src="http://cdn.arnoldclark.com/assets/js/json2.js" type="text/javascript" charset="utf-8"></script>
   <![endif]-->
@@ -310,14 +177,6 @@
   <script type="text/javascript" src='select2/select2.js'></script>
   <script type="text/javascript" src='node_modules/backbone/node_modules/underscore/underscore.js'></script>
   <script type="text/javascript" src='node_modules/backbone/backbone.js'></script>
-
-  <script src="http://cdn.arnoldclark.com/assets/js/hammer.js" type="text/javascript" charset="utf-8"></script>
-  <script type="text/javascript">
-  $(function() {
-      // Init the page
-      // init();
-    });
-  </script>
 
   <script type="text/template" id="results-template">
   <form>
@@ -424,9 +283,10 @@
       }
     });
 
-    $('#select2').on("change", function(e) { 
-      $('#s2id_autogen1').val("");
+    var makeTermsEnglishLike = function() {
+      // English languageify the terms in the search box
       terms = $('#select2').select2("data");
+      // Sort terms so all fuel types are together, all colours are together etc
       sortedTerms = _.sortBy(terms, function(term) { 
         return term["id"].split("-")[0] 
       });
@@ -446,14 +306,25 @@
           lastTermType = termType; 
         } 
       });
+
       $('#select2').select2("data", sortedTerms);
+    };
+
+    $('#select2').on("change", function(e) { 
+      $('#s2id_autogen1').val("");
+      makeTermsEnglishLike();
       $('#select2').select2("open");
+    });
+
+    $('#select2').on("select2-removed", function(e) { 
+      makeTermsEnglishLike();
+      $("form#autocomplete-remote").submit();
     });
 
     $('#s2id_autogen1').on("focus", function(e) {
       $(this).hide();
       webkitRequestAnimationFrame(function() { 
-        $(document).scrollTop(100);
+        $(document).scrollTop(95);
         $(this).show();
       }.bind(this));
     });
