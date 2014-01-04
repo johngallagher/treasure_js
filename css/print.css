@@ -1,0 +1,374 @@
+@page {
+  margin: 0.5cm;
+  background-color: red;
+}
+
+.quick-links, .header, .footer, ul.share, ul.cta a.button, .js.detail .part-3 .fuel-costs, .detail .part-4 .section .section.branch-vcard .button, .part-3 .section .budget-calc, .attribution, .fuel-costs {
+  display: none;
+}
+
+.part-1 .section, .part-2 .section, .part-3 .section, .part-4 .section, .part-5 .section {
+  max-width: 800px;
+}
+
+body.detail .hproduct, body.serps form .hproduct:after, body.detail .hproduct:after {
+  background: none;
+  box-shadow: none;
+  overflow: auto;
+  padding-bottom: 0;
+  display: inline;
+}
+
+body.detail .hproduct .cta {
+  min-height: 50px;
+}
+
+.js.detail .part-3 .running-costs {
+  border-right:none;
+  margin-right: none;
+}
+
+.detail .part-3 .running-costs dl.rc-roadtax.p-5, .detail .part-3 .running-costs dl.rc-mpg.p-1 {
+  background: none;
+}
+
+.detail .part-3 .running-costs dl {
+  height: 30px;
+}
+
+.detail .part-2 .section, .detail .part-4 .section .section {
+  border: none;
+  background: none;
+  box-shadow: none;
+}
+
+.detail table tr td[scope="row"], .js.detail table tr td.scope-row, .detail .part-2 .section {
+  color: #444444;
+}
+
+.js.detail .nav.nav-tabs, .detail .nav.nav-tabs, .nav.nav-tabs a {
+  display: none;
+}
+
+.detail .nav.nav-tabs {
+  display: block;
+}
+
+.js.detail .part-2 .section #tab-1, .js.detail .part-2 .section #tab-2, .js.detail .part-2 .section #tab-3 {
+  display: block;
+  margin-bottom: 40px;
+}
+
+.js.detail .part-2 .section #tab-2.current, .js.detail .part-2 .section #tab-3.current {
+  display: none;
+}
+
+.js.detail .part-2 .section h2 {
+  display: block;
+}
+
+.js.detail .part-2 .section {
+  margin-top: 0px;
+}
+
+body.serps form .hproduct h2, body.detail .hproduct h1 {
+  font-size: 180%;
+  text-align: left;
+}
+
+body.serps form .hproduct .summary, body.detail .hproduct .summary {
+  font-size: 140%;
+  text-align: left;
+}
+
+body.detail .hproduct .photo-holder {
+  text-align: left;
+  max-width: 40%;
+  float: left;
+}
+
+body.detail .hproduct .photo-holder span.image-counter {
+  display: none;
+}
+
+.section img {
+  max-width: 100%
+}
+
+body.serps form .hproduct ul li, body.detail .hproduct ul li {
+  padding:5px 0;
+  text-align: left;
+}
+
+body.detail .hproduct ul li.price {
+  font-size: 250%;
+}
+
+.cta-phone b {
+  font-size: 180%;
+}
+
+body.serps form .hproduct .cta, body.detail .hproduct .cta, body.detail .part-4 .cta {
+  padding: 0;
+  margin: 0;
+}
+
+body.serps form .hproduct .branch, body.detail .hproduct .branch {
+  text-align: left;
+  margin:0;
+  padding: 0;
+  background: none;
+  width: 35%;
+  float: right;
+}
+
+body.detail .hproduct .price-info {
+  width: 20%;
+  float: left;
+  margin: 0 0 0 10px;
+}
+
+body.detail .hproduct .cta, body.detail .part-4 .cta {
+  float: right;
+  width: 35%;
+  background: none;
+  padding: 0;
+  margin: 0;
+}
+
+body.serps form .hproduct .cta, body.detail .hproduct .cta {
+  margin-right: 0px;
+  clear: none;
+  min-height: 0px;
+}
+
+/* Tabs Area */
+
+.detail .part-2 .section .section {
+  margin: 0;
+  padding: 0;
+}
+
+.detail .part-2 .section #tab-1 h3 {
+  width: 45%;
+}
+
+.detail .part-2 .section #tab-1 .featured h3 {
+  width: 100%;
+  clear: none;
+}
+
+.detail .part-2 table {
+  width: 45%;
+  font-size: 70%;
+}
+
+.detail .featured {
+  width: 45%;
+  float: right;
+  clear: none;
+  margin:-250px 0 0 0;
+  margin: 0px\9;/*-- HACK FOR IE : ( --*/
+}
+
+.detail .part-2 .section h3 {
+  clear: none;
+}
+
+.detail .part-2 .section .section .featured ul {
+  overflow: auto;
+}
+
+.detail .part-2 .section .section .featured ul li {
+  width: 50%;
+  display: inline;
+  float: left;
+  margin: 0;
+  font-size: 70%;
+}
+
+#tab-2, #tab-3 {
+  margin: 10px 0 0 0;
+}
+
+.detail .part-2 .section .section #tab-2 ul {
+  overflow: auto;
+}
+
+.detail .part-2 .section .section #tab-2 ul li {
+  display: inline;
+  float: left;
+  width: 20%;
+  font-size: 70%;
+}
+
+body.detail .part-2 .section h2 {
+  font-size: 100%;
+}
+
+.detail .part-2 .section h3 {
+  font-size: 80%;
+}
+
+.detail .part-2 .section small {
+  font-size: 50%;
+}
+
+.detail .part-2 .section .section ul li {
+  border: none;
+  padding: 2px;
+}
+
+
+.detail .part-2 .section .section dl {
+  overflow: auto;
+}
+
+.detail .part-2 .section .section dl dt {
+  width: 30%; 
+  float: left;
+  clear: none;
+  border: none;
+  font-size: 70%;
+}
+  
+.detail .part-2 .section .section dl dd {
+  width: 15%;
+  float: left;
+  font-size: 70%;
+  border: none;
+}
+  
+.detail .part-2 .section .section dl dd:nth-child(4n-2) {
+  margin-right: 4.7%;
+}
+  
+.detail .part-2 .section .section dl dd:nth-child(odd) {
+  clear: both;
+  width: 18%;
+}
+
+.detail .part-2 .section .section dl dt {
+  padding: 2px 0;
+}
+
+/* Final Part */
+
+.part-3 {
+  padding: 0;
+}
+
+.detail .part-3 .running-costs h2 {
+  font-size: 100%;
+}
+
+.running-costs p {
+  font-size: 70%;
+}
+
+.running-costs dl {
+  font-size: 80%;
+}
+
+body.detail .hproduct .cta, body.detail .part-4 .cta {
+  float: left;
+  text-align: left;
+  display: inline;
+}
+
+body.detail .hproduct .cta li, body.detail .part-4 .cta li {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+}
+
+.branch-vcard h2 {
+  font-size: 100%;
+}
+
+.shortlist {
+  display: none!important;
+}
+
+.part-1 ul.cta {
+  float: right!important;
+  width: 50%;
+}
+
+.part-1 li.cta-phone {
+  display: inline-block!important;
+}
+
+.part-1 li.cta-phone .tel {
+  width: 100%;
+  display: block;
+}
+
+.part-1 .branch {
+  text-align: center!important;
+}
+
+.part-2 .section #tab-1 small {
+  float: left;
+  width: 45%;
+}
+
+.part-2 .section #tab-2, .part-2 .section #tab-3 {
+  display: none!important;
+}
+
+.part-4 .find-branch {
+  display: none;
+}
+
+.part-4 .branch-card {
+  margin-top: -50px;
+  width: 45%!important;
+  float: left;
+}
+
+.part-4 .branch-card .button {
+  display: none;
+}
+
+.part-4 .branch-card img {
+  max-width: 42%;
+  height: 10%;
+  height: 80%\9;/*-- HACK FOR IE --*/
+}
+
+.part-2 .section #tab-1 table.calc-table {
+  line-height: 1.0!important;
+}
+
+#w-container100 {
+  display: none;
+}
+
+body.detail .hproduct {
+  display: block;
+}
+
+.part-4 ul.cta {
+  float: right!important;
+  width: 20%;
+  margin-top: -70px!important;
+}
+
+.part-4 ul.cta .cta-phone {
+  font-size: 90%;
+}
+
+.part-4 ul.cta .tel {
+  font-size: 110%;
+}
+
+/* Branch Detail */
+
+body.branch_detail .branch_info .ratings {
+  display: none;
+}
+
+body.branch_detail .branch_info .at_this_branch {
+  display: none;
+}
