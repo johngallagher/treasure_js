@@ -398,6 +398,13 @@
 
   $(document).ready(function() {
     $('#select2').select2({
+      initSelection : function (element, callback) {
+        var data = [];
+        $(element.val().split(" ")).each(function () {
+            data.push({id: this, text: this});
+        });
+        callback(data);
+      },
       multiple: true,
       minimumInputLength: 0,
       closeOnSelect: true,
@@ -419,6 +426,27 @@
 
     $('#select2').on("change", function(e) { 
       $('#s2id_autogen1').val("");
+      terms = $('#select2').select2("data");
+      sortedTerms = _.sortBy(terms, function(term) { 
+        return term["id"].split("-")[0] 
+      });
+      // Prepend "or" onto the text of every term that's adjacent to one of the same type.
+      // eg   |x Petrol| |x or Diesel|
+      var lastTermType; 
+
+      _.each(sortedTerms, function(term) { 
+        termType = term["id"].split("-")[0];
+        termText = term["text"];
+        if(lastTermType == termType) { 
+          termIsMissingOr = (termText.indexOf("or ") != 0);
+          if(termIsMissingOr) {
+            term["text"] = "or " + termText; 
+          }
+        } else { 
+          lastTermType = termType; 
+        } 
+      });
+      $('#select2').select2("data", sortedTerms);
       $('#select2').select2("open");
     });
 
