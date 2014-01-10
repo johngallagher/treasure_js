@@ -62,7 +62,7 @@ module.exports = function (grunt) {
           filename: '',
           type: 'PNG',
           // optional config, must set either remote or local
-          remote: 'http://localhost:<%= connect.options.port %>',
+          remote: 'http://0.0.0.0/:<%= connect.options.port %>',
           viewport: ['320x480', '480x320', '384x640', '640x384', '602x963', '963x602', '600x960', '960x600', '800x1280', '1280x800', '768x1024', '1024x768']
         }
       }
@@ -91,7 +91,7 @@ module.exports = function (grunt) {
       options: {
         port: 9000,
         // change this to '0.0.0.0' to access the server from outside
-        hostname: 'localhost'
+        hostname: '0.0.0.0'
       },
       livereload: {
         options: {
@@ -126,7 +126,7 @@ module.exports = function (grunt) {
     },
     open: {
       server: {
-        path: 'http://localhost:<%= connect.options.port %>'
+        path: 'http://jgmacbookpro.local:<%= connect.options.port %>'
       },
       nexus4: {
         path: 'http://www.browserstack.com/start#os=android&os_version=4.2&device=LG+Nexus+4&speed=1&start=true&url=http://rnikitin.github.io/examples/jumbotron/'
@@ -222,57 +222,6 @@ module.exports = function (grunt) {
       }
     },
 
-
-    modernizr: {
-
-      // Path to the build you're using for development.
-      'devFile': '<%= yeoman.app %>/bower_components/modernizr/modernizr.js',
-
-      // Path to save out the built file.
-      'outputFile': '<%= yeoman.dist %>/scripts/modernizr.js',
-
-      // Based on default settings on http://modernizr.com/download/
-      'extra': {
-        'shiv': true,
-        'printshiv': false,
-        'load': true,
-        'mq': false,
-        'cssclasses': true
-      },
-
-      // Based on default settings on http://modernizr.com/download/
-      'extensibility': {
-        'addtest': false,
-        'prefixed': false,
-        'teststyles': false,
-        'testprops': false,
-        'testallprops': false,
-        'hasevents': false,
-        'prefixes': false,
-        'domprefixes': false
-      },
-
-      // By default, source is uglified before saving
-      'uglify': true,
-
-      // Define any tests you want to impliticly include.
-      'tests': [],
-
-      // By default, this task will crawl your project for references to Modernizr tests.
-      // Set to false to disable.
-      'parseFiles': true,
-
-      // When parseFiles = true, this task will crawl all *.js, *.css, *.scss files, except files that are in node_modules/.
-      // You can override this by defining a 'files' array below.
-      // 'files' : [],
-
-      // When parseFiles = true, matchCommunityTests = true will attempt to
-      // match user-contributed tests.
-      'matchCommunityTests': false,
-
-      // Have custom Modernizr tests? Add paths to their location here.
-      'customTests': []
-    },
 
     useminPrepare: {
       options: {
