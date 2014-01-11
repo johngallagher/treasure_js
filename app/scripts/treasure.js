@@ -23,16 +23,20 @@ ChoicesView = Backbone.View.extend({
   }
 });
 
-
-
 $(document).ready(function () {
   var choices = new Choices;
   var view = new ChoicesView({ collection: choices });
-  choices.fetch({ 
-    data: { 
-      q: "va",
-      terms: []
-    },
-    reset: true
+
+  $('input#search').keyup(function() {
+    choices.fetch({ 
+      data: { 
+        q: $('input#search').val(),
+        terms: []
+      },
+      reset: true
+    })
   })
+
+
+
 });

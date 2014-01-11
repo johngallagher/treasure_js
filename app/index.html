@@ -37,7 +37,7 @@
 <div class="pure-menu pure-menu-open">
     <ul>
       <% _.map(this.collection.models, function(model) { %>
-        <li><a href='#'><%= model.get("text") %></a></li>
+        <li><a><%= model.get("text") %></a></li>
       <% }) %>
     </ul>
 </div>
