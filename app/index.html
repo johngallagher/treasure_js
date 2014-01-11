@@ -11,7 +11,7 @@
   <meta name="viewport" content="width=device-width">
   <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
 
-  <!-- build:css styles/main.css -->
+  <!-- build:css styles/app.css -->
   <link rel="stylesheet" href="styles/vendor/pure/pure-min.css">
   <link rel="stylesheet" href="styles/main.css">
   <link rel="stylesheet" href="styles/marketing.css">
@@ -20,7 +20,10 @@
 <body>
   <div class="content">
     <div class="content">
-      <h1>Allo allo!</h1>
+      <h1>Search For A Car</h1>
+      <form>
+        <input id="search" autocomplete="off">
+      </form>
     </div>
 
   </div>
@@ -30,19 +33,13 @@
   <p class="chromeframe">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> or <a href="http://www.google.com/chromeframe/?redirect=true">activate Google Chrome Frame</a> to improve your experience.</p>
   <![endif]-->
 
-  <script>
-  var _gaq=[['_setAccount','UA-XXXXX-X'],['_trackPageview']];
-  (function(d,t){var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
-    g.src='//www.google-analytics.com/ga.js';
-    s.parentNode.insertBefore(g,s)}(document,'script'));
-  </script>
 
-  <!-- build:js scripts/main.js -->
-  <script src="bower_components/jquery/jquery.js"></script>
+  <!-- build:js scripts/app.js -->
+  <script src="bower_components/zepto/zepto.js"></script>
+  <script src="bower_components/underscore/underscore.js"></script>
+  <script src="bower_components/backbone/backbone.js"></script>
+
   <script src="scripts/main.js"></script>
-
-  <script src="scripts/hello.js"></script>
-
   <script src="scripts/fastclick.js"></script>
   <script src="scripts/fastclick.example.js"></script>
   <!-- endbuild -->
