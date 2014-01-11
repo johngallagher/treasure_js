@@ -4,7 +4,7 @@ var Choice = Backbone.Model.extend({
 
 var Choices = Backbone.Collection.extend({
   model: Choice,
-  url: "http://jgmacbookpro.local:3000/api/v1/searches"
+  url: "http://jgmacbookpro.local:3000/api/v1/terms"
 });
 
 ChoicesView = Backbone.View.extend({
@@ -30,7 +30,8 @@ $(document).ready(function () {
   var view = new ChoicesView({ collection: choices });
   choices.fetch({ 
     data: { 
-      q: "make-Vauxhall"
+      q: "va",
+      terms: []
     },
     reset: true
   })
