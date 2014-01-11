@@ -23,6 +23,7 @@
       <h1>Search For A Car</h1>
       <form>
         <input id="search" autocomplete="off">
+        <div id="choices"></div>
       </form>
     </div>
 
@@ -32,13 +33,20 @@
   <!--[if lt IE 7]>
   <p class="chromeframe">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> or <a href="http://www.google.com/chromeframe/?redirect=true">activate Google Chrome Frame</a> to improve your experience.</p>
   <![endif]-->
-
+<script type="text/template" id="choices-template">
+<div>
+<% _.map(this.collection.models, function(model) { %>
+  <p><%= model.get("full_registration") %></p>
+<% }) %>
+</div>
+</script>
 
   <!-- build:js scripts/app.js -->
   <script src="bower_components/zepto/zepto.js"></script>
   <script src="bower_components/underscore/underscore.js"></script>
   <script src="bower_components/backbone/backbone.js"></script>
 
+  <script src="scripts/treasure.js"></script>
   <script src="scripts/main.js"></script>
   <script src="scripts/fastclick.js"></script>
   <script src="scripts/fastclick.example.js"></script>
