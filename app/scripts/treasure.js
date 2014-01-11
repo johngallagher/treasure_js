@@ -32,10 +32,19 @@ $(document).ready(function () {
       data: { 
         q: $('input#search').val(),
         terms: []
-      },
-      reset: true
+      }
+      , reset: true
     })
   })
+
+  $('input#search').on("focus", function(e) {
+    $(this).hide();
+    webkitRequestAnimationFrame(function() { 
+      $(window).scrollTop(80);
+      $(this).show();
+    }.bind(this));
+  });
+
 
 
 
