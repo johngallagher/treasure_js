@@ -37,13 +37,13 @@ $(document).ready(function () {
     })
   })
 
-  $('input#search').on("focus", function(e) {
-    $(this).hide();
-    webkitRequestAnimationFrame(function() { 
-      $(window).scrollTop(80);
-      $(this).show();
-    }.bind(this));
-  });
+  // $('input#search').on("focus", function(e) {
+  //   $(this).hide();
+  //   webkitRequestAnimationFrame(function() { 
+  //     $(window).scrollTop(80);
+  //     $(this).show();
+  //   }.bind(this));
+  // });
 
 
 
