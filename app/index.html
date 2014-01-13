@@ -28,39 +28,34 @@
       <form class="pure-form">
 
         <div class="chosen-container chosen-container-multi chosen-container-active" style="width: 350px;" title="">
-          <ul class="chosen-choices">
-            <li class="search-choice">
-              <span>Vauxhall</span><a class="search-choice-close" data-option-array-index="2"></a>
-            </li>
-            <li class="search-field">
-              <input id="search" type="text" autocomplete="off" style="width: 25px;">
-            </li>
-
+          <ul id="choices" class="chosen-choices">
           </ul>
-          <div id="choices" class="chosen-drop">
+          <div id="dropdown" class="chosen-drop">
           </div>
         </div>
       </form>
     </div>
   </div>
 
-
-  <!--[if lt IE 7]>
-  <p class="chromeframe">You are using an <strong>outdated
-  </strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser
-  </a> or <a href="http://www.google.com/chromeframe/?redirect=true">activate Google Chrome Frame
-  </a> to improve your experience.
-  </p>
-  <![endif]-->
-  <script type="text/template" id="choices-template">
+  <script type="text/template" id="drop-template">
   <ul class="chosen-results">
   <% _.map(this.collection.models, function(model) { %>
     <li class="active-result" data-text="<%= model.get("text") %>" data-name="<%= model.get("name") %>">
       <%= model.get("text") %>
     </li>
-    <% }) %>
-
+  <% }) %>
   </ul>
+  </script>
+
+  <script type="text/template" id="choices-template">
+  <% _.map(this.collection.models, function(model) { %>
+    <li class="search-choice" data-text="<%= model.get("text") %>" data-name="<%= model.get("name") %>">
+      <%= model.get("text") %>
+    </li>
+  <% }) %>
+  <li class="search-field">
+    <input id="search" type="text" autocomplete="off" style="width: 25px;">
+  </li>
   </script>
 
   <!-- build:js scripts/app.js -->
@@ -72,8 +67,6 @@
   </script>
 
   <script src="scripts/treasure.js">
-  </script>
-  <script src="scripts/main.js">
   </script>
   <!-- endbuild -->
 
