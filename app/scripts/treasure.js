@@ -17,7 +17,6 @@ var Dropdown = Backbone.Collection.extend({
   url: "http://jgmacbookpro.local:3000/api/v1/terms",
   initialSearch: function() {
     this.search('');
-    $('input#search').focus();
   },
   search: function(term) {
     this.fetch({
@@ -26,7 +25,7 @@ var Dropdown = Backbone.Collection.extend({
         terms: choices.termList()
       }
       , reset: true
-    })
+    });
   }
 });
 
@@ -47,8 +46,8 @@ DropdownView = Backbone.View.extend({
     choice = dropdown.findWhere({name: $(el.target).data('name'), text: $(el.target).data('text')});
     dropdown.remove(choice);
     choices.add(choice);
-    this.render();
     dropdown.initialSearch();
+    $('input#search').focus();
   },
 
   render: function() {
@@ -71,6 +70,7 @@ ChoicesView = Backbone.View.extend({
     this.template = _.template($('#choices-template').html());
     this.collection.bind("reset", this.render, this);
     this.collection.bind("add", this.render, this);
+    this.addScrollupOnFocus();
   },
 
   search: function(el) {
@@ -81,7 +81,21 @@ ChoicesView = Backbone.View.extend({
     console.log("just rendered choices");
     var renderedContent = this.template(this.collection);
     $(this.el).html(renderedContent);
+    this.addScrollupOnFocus();
     return this;
+  },
+  addScrollupOnFocus: function() {
+    var iOS = /(iPad|iPhone|iPod)/g.test( navigator.userAgent );
+    if (iOS) {
+      $('input#search').on("focus", function(e) {
+        $(this).hide();
+        webkitRequestAnimationFrame(function() { 
+          $(window).scrollTop(80);
+          $(this).show();
+        }.bind(this));
+      });
+    };
+    return true;
   }
 });
 
@@ -90,22 +104,4 @@ var choicesView = new ChoicesView({ collection: choices });
 $(document).ready(function () {
   dropdown.reset();
   choices.reset();
-
-  // $('input#search').keyup(function() {
-  //   dropdown.fetch({ 
-  //     data: { 
-  //       q: $('input#search').val(),
-  //       terms: []
-  //     }
-  //     , reset: true
-  //   });
-  // });
-
-  // $('input#search').on("focus", function(e) {
-  //   $(this).hide();
-  //   webkitRequestAnimationFrame(function() { 
-  //     $(window).scrollTop(80);
-  //     $(this).show();
-  //   }.bind(this));
-  // });
 });
